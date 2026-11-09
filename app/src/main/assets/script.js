@@ -32,8 +32,30 @@ function update(dt){if(!playing)return;dt=Math.min(dt,.06)*speed;clock+=dt;
 if(spawn){spawn.timer-=dt;while(spawn.left>0&&spawn.timer<=0){spawnOne();spawn.left--;spawn.timer+=spawn.interval}if(spawn.left===0){if(spawn.bossPending){let b=bosses[Math.min(Math.floor(wave/5)-1,bosses.length-1)];makeEnemy(b.kind,true,{...b,hp:Math.round(b.hp*Math.pow(1.4,Math.max(0,Math.floor(wave/5)-5)))});notice('👑 '+b.name+' НА ПОЛЕ!');spawn.bossPending=false;tone(145,.3)}spawn=null}}
 for(let i=enemies.length-1;i>=0;i--){let e=enemies[i],next=route[e.idx+1];e.attackCd=(e.attackCd===undefined?1.4:e.attackCd-dt);if(e.idx>=28&&e.attackCd<=0&&wallHp>0){wallHp=Math.max(0,wallHp-(e.boss?22:5));e.attackCd=e.boss?1.8:2.5;pop(e.x,e.y,'#ffb75c',2)}if(!next){enemies.splice(i,1);if(wallHp>0){let hit=Math.min(wallHp,e.leak*15);wallHp-=hit;hp-=Math.max(0,e.leak-Math.ceil(hit/15))}else hp-=e.leak;pop(e.x,e.y,'#f65b57',12);if(hp<=0){hp=0;sync();finish();return}continue}let tx=next[0]*C+C/2,ty=next[1]*C+C/2,dx=tx-e.x,dy=ty-e.y,d=Math.hypot(dx,dy),step=e.speed*(e.slow>0?.52:1)*dt;if(e.slow>0)e.slow-=dt;if(d<=step){e.x=tx;e.y=ty;e.idx++}else if(d>0){e.x+=dx/d*step;e.y+=dy/d*step}}
 for(let t of towers){t.cool-=dt;if(t.cool>0)continue;let d=defs[t.type],range=d.range+(t.level-1)*10,targets=enemies.filter(e=>Math.hypot(e.x-t.x,e.y-t.y)<range).sort((a,b)=>b.idx-a.idx);if(targets.length){let e=targets[0];bullets.push({x:t.x,y:t.y,target:e,type:t.type,damage:d.damage*(1+(t.level-1)*.65),speed:t.type==='cannon'?230:330});t.cool=d.rate/(1+(t.level-1)*.13);tone(t.type==='frost'?730:t.type==='cannon'?170:510,.02)}}
-for(let i=bullets.length-1;i>=0;i--){let b=bullets[i],e=b.target;if(!enemies.includes(e)){bullets.splice(i,1);continue}let dx=e.x-b.x,dy=e.y-b.y,d=Math.hypot(dx,dy),step=b.speed*dt;if(d<=step+8){let victims=b.type==='cannon'?enemies.filter(v=>Math.hypot(v.x-e.x,v.y-e.y)<46):[e];for(let v of victims){if(!enemies.includes(v))continue;v.hp-=b.damage;if(b.type==='frost')v.slow=1.7;pop(v.x,v.y,defs[b.type].color,3);if(v.hp<=0){enemies.splice(enemies.indexOf(v),1);if(window.absoluteSeason)window.absoluteSeason.recordKill(1);gold+=v.reward;if(v.boss){gems+=8*modes[modeIndex].reward;updateGems()}score+=v.boss?500+wave*25:10+wave*2;pop(v.x,v.y,v.boss?'#f5c44d':'#9cdd78',v.boss?24:8);if(v.boss){notice('🏆 БОСС ПОБЕЖДЁН! +'+v.reward+' монет');tone(900,.3)}}}bullets.splice(i,1);sync()}else if(d>0){b.x+=dx/d*step;b.y+=dy/d*step}}
+for(let i=bullets.length-1;i>=0;i--){let b=bullets[i],e=b.target;if(!enemies.includes(e)){bullets.splice(i,1);continue}let dx=e.x-b.x,dy=e.y-b.y,d=Math.hypot(dx,dy),step=b.speed*dt;if(d<=step+8){let victims=b.type==='cannon'?enemies.filter(v=>Math.hypot(v.x-e.x,v.y-e.y)<46):[e];for(let v of victims){if(!enemies.includes(v))continue;v.hp-=b.damage;if(b.type==='frost')v.slow=1.7;pop(v.x,v.y,defs[b.type].color,3);absHitFlash(v.x,v.y,defs[b.type].color);if(v.hp<=0){enemies.splice(enemies.indexOf(v),1);if(window.absoluteSeason)window.absoluteSeason.recordKill(1);gold+=v.reward;if(v.boss){gems+=8*modes[modeIndex].reward;updateGems()}score+=v.boss?500+wave*25:10+wave*2;pop(v.x,v.y,v.boss?'#f5c44d':'#9cdd78',v.boss?24:8);if(v.boss){notice('🏆 БОСС ПОБЕЖДЁН! +'+v.reward+' монет');tone(900,.3)}}}bullets.splice(i,1);sync()}else if(d>0){b.x+=dx/d*step;b.y+=dy/d*step}}
 for(let i=particles.length-1;i>=0;i--){let p=particles[i];p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;if(p.life<=0)particles.splice(i,1)}if(active&&!spawn&&enemies.length===0){active=false;if(window.absoluteSeason)window.absoluteSeason.recordBattle();let bonus=30+wave*5;gold+=bonus;gems+=modes[modeIndex].reward;updateGems();if(wave>=modes[modeIndex].waves){playing=false;$('overlayTitle').textContent='🏆 ПОБЕДА!';$('overlayText').textContent='Режим '+modes[modeIndex].name+' пройден! '+wave+' волн. Изумруды: '+gems;$('overlayBtn').textContent='В МЕНЮ';$('overlay').classList.remove('hidden');$('waveBtn').disabled=true}else{notice('🏆 Волна '+wave+' отбита! Бонус '+bonus+' монет и изумруды.');$('waveBtn').disabled=false;$('waveBtn').textContent='▶ СЛЕДУЮЩАЯ ВОЛНА'}tone(880,.15);sync()}}
+
+// ABS_ENV_GRAPHICS_V4
+function absStoneDetail(x,y,w,h){
+  ctx.save();
+  ctx.fillStyle="rgba(0,0,0,0.18)";
+  ctx.fillRect(x+2,y+2,w,h);
+  ctx.fillStyle="rgba(255,255,255,0.12)";
+  ctx.fillRect(x,y,w,2);
+  ctx.restore();
+}
+
+function absTorchGlow(x,y,t){
+  ctx.save();
+  const pulse=0.75+Math.sin(t*6)*0.15;
+  const g=ctx.createRadialGradient(x,y,1,x,y,28);
+  g.addColorStop(0,"rgba(255,190,70,"+pulse+")");
+  g.addColorStop(1,"rgba(255,80,0,0)");
+  ctx.fillStyle=g;
+  ctx.fillRect(x-28,y-28,56,56);
+  ctx.restore();
+}
+
 function rect(x,y,w,h,col){ctx.fillStyle=col;ctx.fillRect(Math.round(x),Math.round(y),Math.ceil(w),Math.ceil(h))}
 function pixel(x,y,scale,art,palette){let lines=art.trim().split('/');for(let j=0;j<lines.length;j++)for(let i=0;i<lines[j].length;i++){let col=palette[lines[j][i]];if(col)rect(x+i*scale,y+j*scale,scale,scale,col)}}
 const sprites={
@@ -75,12 +97,93 @@ function absMobEffects(e){
 }
 
 function drawMob(e){absMobEffects(e);let scale=e.boss?4:3,sz=scale*8,xx=Math.round(e.x-sz/2),yy=Math.round(e.y-sz/2+Math.sin(clock*7+e.phase)*1.5),sprite=sprites[e.kind]||sprites.skeleton;rect(xx-2,yy+sz-4,sz+4,4,'#27351f');pixel(xx,yy,scale,sprite[0],sprite[1]);let bw=e.boss?48:28;rect(e.x-bw/2,e.y-sz/2-9,bw,5,'#3e242b');rect(e.x-bw/2,e.y-sz/2-9,bw*Math.max(0,e.hp/e.max),5,e.boss?'#ff6550':'#8cdb72');if(e.boss){ctx.fillStyle='#ffda86';ctx.font='bold 8px sans-serif';ctx.textAlign='center';ctx.fillText(e.name,e.x,e.y-sz/2-13)}if(e.slow>0){ctx.strokeStyle='#8fe9ff';ctx.lineWidth=2;ctx.strokeRect(xx-2,yy-2,sz+4,sz+4)}}
+
+// ABS_ENV_RENDER_V4
+function absDrawAtmosphere(){
+  ctx.save();
+
+  // Каменные декоративные элементы
+  const size=16;
+  const positions=[
+    [12,12],[w-28,12],
+    [12,h-28],[w-28,h-28]
+  ];
+
+  for(const [x,y] of positions){
+    absStoneDetail(x,y,size,size);
+    ctx.fillStyle="#665d72";
+    ctx.fillRect(x,y,size,size);
+    ctx.fillStyle="#a69aab";
+    ctx.fillRect(x+2,y+2,size-4,3);
+  }
+
+  // Мерцающие факелы
+  absTorchGlow(20,20,clock);
+  absTorchGlow(w-20,20,clock);
+
+  ctx.restore();
+}
+
+
+// ABS_TOWER_GRAPHICS_V4
+function absDrawTowerDetail(t){
+  const x=Math.round(t.x);
+  const y=Math.round(t.y);
+
+  ctx.save();
+
+  // Пиксельная тень
+  ctx.fillStyle="rgba(0,0,0,0.30)";
+  ctx.fillRect(x-10,y+7,22,5);
+
+  // Каменный фундамент
+  ctx.fillStyle="#413a4c";
+  ctx.fillRect(x-9,y-8,18,17);
+
+  ctx.fillStyle="#786b82";
+  ctx.fillRect(x-9,y-8,17,3);
+
+  // Каменная кладка
+  ctx.fillStyle="#a296a8";
+  for(let row=0;row<3;row++){
+    for(let col=0;col<3;col++){
+      const offset=row%2?3:0;
+      ctx.fillRect(x-7+col*5+offset,
+                   y-5+row*4,3,1);
+    }
+  }
+
+  // Золотые детали улучшений
+  if(t.level>1){
+    ctx.fillStyle="#ffd15b";
+    ctx.fillRect(x-6,y-9,12,2);
+  }
+
+  ctx.restore();
+}
+
+
+// ABS_HIT_GRAPHICS_V4
+function absHitFlash(x,y,color){
+  if(!Array.isArray(particles))return;
+  for(let i=0;i<5;i++){
+    const a=Math.random()*Math.PI*2;
+    particles.push({
+      x:x,y:y,
+      vx:Math.cos(a)*25,
+      vy:Math.sin(a)*25,
+      life:0.22,
+      color:color
+    });
+  }
+}
+
 function draw(){ctx.clearRect(0,0,W,H);for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++){let n=rand(x*43,y*19),road=cells.has(x+','+y);rect(x*C,y*C,C,C,road?'#a1784f':n>.5?modes[modeIndex].tint:'#426038');if(road){rect(x*C+2,y*C+2,C-4,C-4,'#b48a59');if(n>.4)rect(x*C+8,y*C+24,7,3,'#9a7048')}else{if(n>.35){rect(x*C+8,y*C+8,4,4,'#6f8b45');rect(x*C+27,y*C+25,4,4,'#bd8d43')}if(n>.8)rect(x*C+13,y*C+19,6,6,'#c97534')}}
 for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++)if(!cells.has(x+','+y)&&rand(x*3,y*99)>.84&&!towers.some(a=>a.cx===x&&a.cy===y)){rect(x*C+15,y*C+13,10,17,'#62442f');rect(x*C+7,y*C+5,26,17,'#bd6b30');rect(x*C+13,y*C,16,14,'#e49b39')}
 if(wallHp>0){rect(4*C-13,H-62,66,9,'#24252a');rect(4*C-12,H-61,64*Math.max(0,wallHp/walls[ownedWall].hp),7,'#6de5a3')}rect(4*C-4,H-35,48,35,'#57505c');rect(4*C+3,H-49,34,19,'#777080');rect(4*C+12,H-26,16,26,'#34212a');rect(4*C-8,H-44,12,44,'#88818a');rect(5*C-4,H-44,12,44,'#88818a');rect(4*C-10,H-49,16,9,'#bbb3a4');rect(5*C-6,H-49,16,9,'#bbb3a4');
-for(let t of towers){let d=defs[t.type];if(t===selectedTower){ctx.strokeStyle='#ffe19c99';ctx.lineWidth=2;ctx.beginPath();ctx.arc(t.x,t.y,d.range+(t.level-1)*10,0,Math.PI*2);ctx.stroke();ctx.strokeStyle='#fff5b3';ctx.strokeRect(t.cx*C+2,t.cy*C+2,36,36)}rect(t.x-15,t.y-11,30,25,'#3d2b35');rect(t.x-12,t.y-15,24,9,t.type==='frost'?'#75c7df':t.type==='cannon'?'#ba6850':'#d7a85d');ctx.font='22px serif';ctx.textAlign='center';ctx.fillText(t.type==='archer'?'🏹':t.type==='cannon'?'💣':'❄️',t.x,t.y+10);if(t.level>1){ctx.font='bold 11px sans-serif';ctx.fillStyle='#fff1aa';ctx.fillText('+'+(t.level-1),t.x+13,t.y-12)}}
+for(let t of towers){absDrawTowerDetail(t);let d=defs[t.type];if(t===selectedTower){ctx.strokeStyle='#ffe19c99';ctx.lineWidth=2;ctx.beginPath();ctx.arc(t.x,t.y,d.range+(t.level-1)*10,0,Math.PI*2);ctx.stroke();ctx.strokeStyle='#fff5b3';ctx.strokeRect(t.cx*C+2,t.cy*C+2,36,36)}rect(t.x-15,t.y-11,30,25,'#3d2b35');rect(t.x-12,t.y-15,24,9,t.type==='frost'?'#75c7df':t.type==='cannon'?'#ba6850':'#d7a85d');ctx.font='22px serif';ctx.textAlign='center';ctx.fillText(t.type==='archer'?'🏹':t.type==='cannon'?'💣':'❄️',t.x,t.y+10);if(t.level>1){ctx.font='bold 11px sans-serif';ctx.fillStyle='#fff1aa';ctx.fillText('+'+(t.level-1),t.x+13,t.y-12)}}
 for(let e of enemies)drawMob(e);for(let b of bullets){ctx.fillStyle=defs[b.type].color;ctx.beginPath();ctx.arc(b.x,b.y,b.type==='cannon'?7:4,0,Math.PI*2);ctx.fill()}for(let p of particles){ctx.globalAlpha=Math.max(0,p.life/.4);rect(p.x,p.y,4,4,p.color)}ctx.globalAlpha=1;rect(0,0,W,6,'#241c27');ctx.font='bold 12px monospace';ctx.textAlign='left';ctx.fillStyle='#ffe8a6';ctx.fillText(active?(wave%5===0?'👑 БОСС · ':'⚔ ВОЛНА ')+wave:modes[modeIndex].place,10,22)}
-function loop(ts){if(!last)last=ts;let dt=(ts-last)/1000;last=ts;update(dt);draw();requestAnimationFrame(loop)}
+function loop(ts){if(!last)last=ts;let dt=(ts-last)/1000;last=ts;update(dt);draw();absDrawAtmosphere();requestAnimationFrame(loop)}
 c.addEventListener('pointerdown',ev=>{if(!playing)return;ev.preventDefault();let r=c.getBoundingClientRect(),x=Math.floor((ev.clientX-r.left)/r.width*W/C),y=Math.floor((ev.clientY-r.top)/r.height*H/C);if(x<0||x>=COLS||y<0||y>=ROWS)return;let old=towers.find(a=>a.cx===x&&a.cy===y);if(old){selectedTower=old;notice('Башня '+old.level+' уровня. Нажми «Улучшить».');sync();return}if(cells.has(x+','+y)){notice('⛔ На дороге строить нельзя!');tone(150);return}let d=defs[selectedType];if(gold<d.cost){notice('🪙 Недостаточно монет!');tone(150);return}gold-=d.cost;let t={cx:x,cy:y,x:x*C+C/2,y:y*C+C/2,type:selectedType,level:1,cool:0};towers.push(t);selectedTower=t;pop(t.x,t.y,'#ffda7b',10);tone(680);notice('Башня построена!');sync()});
 document.querySelectorAll('[data-tower]').forEach(b=>b.addEventListener('click',()=>{selectedType=b.dataset.tower;selectedTower=null;document.querySelectorAll('[data-tower]').forEach(z=>z.classList.toggle('selected',z===b));notice('Выбран тип: '+b.querySelector('b').textContent+'. Коснись свободной клетки.');sync()}));
 $('upgradeBtn').onclick=()=>{if(!selectedTower)return;let cost=Math.floor(defs[selectedTower.type].cost*(.75+selectedTower.level*.65));if(gold<cost)return;gold-=cost;selectedTower.level++;pop(selectedTower.x,selectedTower.y,'#f9dd7b',12);notice('⬆ Башня улучшена до '+selectedTower.level+' уровня!');tone(800,.12);sync()};$('waveBtn').onclick=waveStart;$('speedBtn').onclick=()=>{speed=speed===1?2:1;$('speedBtn').textContent='⏩ x'+speed};$('sound').onclick=()=>{sound=!sound;$('sound').textContent=sound?'🔊':'🔇'};$('overlayBtn').onclick=()=>{if(wave>=modes[modeIndex].waves&&hp>0){showMenu()}else{init();$('overlay').classList.add('hidden')}};requestAnimationFrame(loop);
