@@ -74,4 +74,158 @@
 })();
 </script>
 
+
+<style>
+#absoluteSeasonPass{
+ position:fixed;inset:0;z-index:99999;
+ background:#10101deF;color:#ffe9ad;
+ font-family:monospace;overflow:auto;
+ padding:20px;box-sizing:border-box
+}
+#absoluteSeasonPass[hidden]{display:none!important}
+#absoluteSeasonPass button{
+ background:#574026;color:#fff1c6;
+ border:2px solid #e0b65c;border-radius:6px;
+ padding:10px;margin:5px;cursor:pointer
+}
+#absoluteSeasonPass .reward{
+ padding:12px;margin:8px 0;
+ background:#282438;border:1px solid #8a714b
+}
+#absoluteSeasonPass .bar{
+ background:#332e3e;height:16px;border-radius:6px
+}
+#absoluteSeasonPass .fill{
+ background:#e4b94b;height:100%;border-radius:6px
+}
+#seasonOpenButton{
+ position:fixed;right:12px;bottom:72px;z-index:99998;
+ background:#45321f;color:#ffe8a4;
+ border:2px solid #d6aa4d;border-radius:8px;
+ padding:12px;font-weight:bold
+}
+</style>
+<button id="seasonOpenButton" type="button">🏆 СЕЗОН</button>
+<div id="absoluteSeasonPass" hidden>
+ <button id="seasonClose" type="button">✕ Закрыть</button>
+ <h2>🏰 СЕЗОН I</h2>
+ <h3>ЗОЛОТОЕ КОРОЛЕВСТВО</h3>
+ <p id="seasonInfo"></p>
+ <div class="bar"><div class="fill" id="seasonFill"></div></div>
+ <p id="seasonCrystals"></p>
+ <button id="seasonPremium" type="button">Открыть премиум</button>
+ <h3>⚔️ ЗАДАНИЯ</h3>
+ <div id="seasonTasks"></div>
+ <h3>🎁 НАГРАДЫ</h3>
+ <div id="seasonRewards"></div>
+</div>
+<script>
+(function(){
+ const KEY="absolute_season_v1";
+ const XP_PER_LEVEL=100;
+ const PREMIUM_COST=1000;
+ const tasks=[
+  {name:"Победи в 1 сражении",xp:40,kind:"battle",goal:1},
+  {name:"Победи в 5 сражениях",xp:100,kind:"battle",goal:5},
+  {name:"Уничтожь 50 врагов",xp:100,kind:"kill",goal:50}
+ ];
+ let state;
+ try {state=JSON.parse(localStorage.getItem(KEY)||"{}")}
+ catch(e){state={}}
+ state={
+  xp:Math.max(0,Number(state.xp)||0),
+  crystals:Math.max(0,Number(state.crystals)||0),
+  premium:state.premium===true,
+  claimed:state.claimed||{},
+  stats:state.stats||{battle:0,kill:0},
+  tasksClaimed:state.tasksClaimed||{}
+ };
+ const $=id=>document.getElementById(id);
+ const save=()=>localStorage.setItem(KEY,JSON.stringify(state));
+ const level=()=>Math.min(30,Math.floor(state.xp/XP_PER_LEVEL));
+ function render(){
+  $("seasonInfo").textContent=
+   "Уровень "+level()+"/30 | XP: "+state.xp;
+  $("seasonFill").style.width=
+   (level()===30?100:state.xp%100)+"%";
+  $("seasonCrystals").textContent=
+   "💎 Кристаллы сезона: "+state.crystals;
+  $("seasonPremium").textContent=state.premium
+   ?"👑 Премиум открыт"
+   :"👑 Премиум — "+PREMIUM_COST+" 💎";
+  $("seasonTasks").innerHTML="";
+  tasks.forEach((t,i)=>{
+   const count=state.stats[t.kind]||0;
+   const div=document.createElement("div");
+   div.className="reward";
+   const text=document.createElement("span");
+   text.textContent=t.name+" ("+Math.min(count,t.goal)+"/"+t.goal+") — +"+t.xp+" XP ";
+   const b=document.createElement("button");
+   b.textContent=state.tasksClaimed[i]?"Получено":"Забрать";
+   b.disabled=!!state.tasksClaimed[i]||count<t.goal;
+   b.onclick=()=>{
+    if(state.tasksClaimed[i]||count<t.goal)return;
+    state.tasksClaimed[i]=true;
+    state.xp=Math.min(3000,state.xp+t.xp);
+    save();render();
+   };
+   div.append(text,b);
+   $("seasonTasks").append(div);
+  });
+  $("seasonRewards").innerHTML="";
+  for(let n=1;n<=30;n++){
+   const div=document.createElement("div");
+   div.className="reward";
+   const title=document.createElement("strong");
+   title.textContent="Уровень "+n;
+   div.append(title);
+   [["free",50],["premium",150]].forEach(([type,amount])=>{
+    const b=document.createElement("button");
+    const key=type+n;
+    b.textContent=(type==="free"?"🎁":"👑")+
+      " "+amount+" 💎 "+(state.claimed[key]?"✓":"");
+    b.disabled=level()<n||!!state.claimed[key]||
+      (type==="premium"&&!state.premium);
+    b.onclick=()=>{
+     if(level()<n||state.claimed[key]||
+        (type==="premium"&&!state.premium))return;
+     state.claimed[key]=true;
+     state.crystals+=amount;
+     save();render();
+    };
+    div.append(b);
+   });
+   $("seasonRewards").append(div);
+  }
+ }
+ $("seasonOpenButton").onclick=()=>{
+  $("absoluteSeasonPass").hidden=false;render();
+ };
+ $("seasonClose").onclick=()=>{
+  $("absoluteSeasonPass").hidden=true;
+ };
+ $("seasonPremium").onclick=()=>{
+  if(state.premium)return;
+  if(state.crystals<PREMIUM_COST){
+   alert("Недостаточно кристаллов сезона");return;
+  }
+  state.crystals-=PREMIUM_COST;
+  state.premium=true;
+  save();render();
+ };
+ window.absoluteSeason={
+  recordBattle(){
+   state.stats.battle=(state.stats.battle||0)+1;
+   save();render();
+  },
+  recordKill(amount=1){
+   state.stats.kill=(state.stats.kill||0)+Math.max(0,amount);
+   save();render();
+  },
+  getState(){return JSON.parse(JSON.stringify(state))}
+ };
+ render();
+})();
+</script>
+
 </body></html>
