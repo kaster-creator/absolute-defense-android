@@ -7,14 +7,71 @@
   <p id="onlineStatus4" aria-live="polite"></p>
 </div>
 <div id="modeList" class="mode-list"></div><button id="openShop">💎 МАГАЗИН ЗАЩИТЫ</button><small>Изумруды сохраняются на устройстве</small></div></div><div class="kingdom-screen hidden" id="kingdomShop"><div class="kingdom-panel"><h2>💎 МАГАЗИН</h2><p>Твои изумруды: <b id="shopGems">0</b></p><div id="shopItems"></div><button id="shopBack">← НАЗАД</button></div></div><div class="overlay" id="overlay"><div class="modal"><div class="crest">🏰</div><h2 id="overlayTitle">ЗАЩИТИ ЗАМОК!</h2><p id="overlayText">Строй башни на траве. Враги идут по дороге к воротам. Продержись как можно дольше!</p><button id="overlayBtn">НАЧАТЬ ИГРУ</button><small>Рекорд: <span id="best">0</span></small></div></div></div><div class="toolbar"><button class="tower selected" data-tower="archer"><span>🏹</span><b>Лучник</b><small>50 🪙</small></button><button class="tower" data-tower="cannon"><span>💣</span><b>Пушка</b><small>90 🪙</small></button><button class="tower" data-tower="frost"><span>❄️</span><b>Лёд</b><small>75 🪙</small></button></div><div class="actions"><button id="waveBtn">▶ НАЧАТЬ ВОЛНУ</button><button id="upgradeBtn" disabled>⬆ Улучшить</button><button id="speedBtn">⏩ x1</button></div><p id="hint">Выбери башню снизу и коснись свободной клетки рядом с дорогой.</p><footer>ABSOLUTE PROJECT · Версия 3.0 · Прогресс рекорда сохраняется на устройстве</footer></main><script src="script.js"></script>
+
 <script>
-document.getElementById("createRoom4").onclick = function() {
-  document.getElementById("onlineStatus4").textContent =
-    "Создание комнаты станет доступно после подключения сервера.";
-};
-document.getElementById("joinRoom4").onclick = function() {
-  document.getElementById("onlineStatus4").textContent =
-    "Вход по коду станет доступен после подключения сервера.";
-};
+(function () {
+  const status = document.getElementById("onlineStatus4");
+  const create = document.getElementById("createRoom4");
+  const join = document.getElementById("joinRoom4");
+  let socket = null;
+
+  function connect(action) {
+    status.textContent = "Подключаемся к серверу...";
+    create.disabled = true;
+    join.disabled = true;
+
+    if (socket) socket.close();
+
+    const ws = new WebSocket("ws://127.0.0.1:8080");
+    socket = ws;
+
+    ws.onopen = function () {
+      ws.send(JSON.stringify(action));
+    };
+
+    ws.onmessage = function (event) {
+      const msg = JSON.parse(event.data);
+
+      if (msg.type === "created") {
+        status.textContent = "Код комнаты: " + msg.code;
+      } else if (msg.type === "joined") {
+        status.textContent = "Ты вошёл в комнату " + msg.code;
+      } else if (msg.type === "room") {
+        status.textContent =
+          "Комната " + msg.code +
+          " | Игроков: " + msg.players + "/4";
+      } else if (msg.type === "error") {
+        status.textContent = msg.message;
+      }
+    };
+
+    ws.onerror = function () {
+      status.textContent = "Не удалось подключиться к серверу";
+    };
+
+    ws.onclose = function () {
+      create.disabled = false;
+      join.disabled = false;
+    };
+
+    create.disabled = false;
+    join.disabled = false;
+  }
+
+  create.onclick = function () {
+    connect({type: "create"});
+  };
+
+  join.onclick = function () {
+    const code = prompt("Введи 6-значный код комнаты:");
+    if (!code) return;
+    if (!/^[0-9]{6}$/.test(code.trim())) {
+      status.textContent = "Код должен содержать 6 цифр";
+      return;
+    }
+    connect({type: "join", code: code.trim()});
+  };
+})();
 </script>
+
 </body></html>
