@@ -84,7 +84,7 @@ public class MainActivity extends Activity {
                 WebView view,
                 android.webkit.WebResourceRequest request
             ) {
-                
+
                 // ABS_FILE_UPDATE_INTERCEPT_V1
                 try {
                     android.net.Uri uri = request.getUrl();
@@ -153,7 +153,20 @@ public class MainActivity extends Activity {
         settings.setAllowUniversalAccessFromFileURLs(false);
         settings.setDefaultTextEncodingName("UTF-8");
         setContentView(webView);
-        webView.loadUrl("file:///android_asset/index.html");
+
+// ABS_OTA_STARTUP_V2
+java.io.File updatedGame = new java.io.File(
+    getFilesDir(), "game_updates/active/index.html"
+);
+
+if (updatedGame.isFile()) {
+    webView.loadUrl(
+        "https://appassets.androidplatform.net/updates/index.html"
+    );
+} else {
+    webView.loadUrl("file:///android_asset/index.html");
+}
+
         checkUpdates();
     }
 
