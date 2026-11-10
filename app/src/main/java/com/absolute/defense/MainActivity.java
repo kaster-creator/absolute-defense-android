@@ -46,7 +46,7 @@ public class MainActivity extends Activity {
         settings.setAllowUniversalAccessFromFileURLs(false);
         settings.setDefaultTextEncodingName("UTF-8");
         setContentView(webView);
-        webView.loadUrl("https://appassets.androidplatform.net/assets/index.html");
+        webView.loadUrl("file:///android_asset/index.html");
         checkUpdates();
     }
 
