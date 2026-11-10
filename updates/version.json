@@ -6,5 +6,8 @@
     "Подготовлена система проверки обновлений",
     "Сохранён сезонный пропуск"
   ],
-  "package": null
+  "package": {
+    "url": "https://raw.githubusercontent.com/kaster-creator/absolute-defense-android/auto-updates-5/updates/game-5.0.0.zip",
+    "sha256": "33613791d2cdc0812ed7cced58e3949e77d68f3d6fb4b49dac4c78ffef5ac0fa"
+  }
 }
