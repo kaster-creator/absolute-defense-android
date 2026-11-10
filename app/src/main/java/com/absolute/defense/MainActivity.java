@@ -99,6 +99,49 @@ public class MainActivity extends Activity {
         checkUpdates();
     }
 
+
+    // ABS_SAVE_BRIDGE_V1
+    private void exportGameSave() {
+        webView.evaluateJavascript(
+            "(function(){"
+            + "if(window.absoluteExportSave)"
+            + "return window.absoluteExportSave();"
+            + "return null;"
+            + "})()",
+            result -> {
+                try {
+                    if (result == null ||
+                        result.equals("null")) {
+                        return;
+                    }
+
+                    String json = new org.json.JSONTokener(
+                        result
+                    ).nextValue().toString();
+
+                    java.io.File file = new java.io.File(
+                        getFilesDir(), "game_save_backup.json"
+                    );
+
+                    try (java.io.FileOutputStream out =
+                        new java.io.FileOutputStream(file)) {
+                        out.write(json.getBytes(
+                            java.nio.charset.StandardCharsets.UTF_8
+                        ));
+                    }
+
+                    android.util.Log.i(
+                        "ABS_SAVE", "Backup created"
+                    );
+                } catch (Exception e) {
+                    android.util.Log.e(
+                        "ABS_SAVE", "Backup failed", e
+                    );
+                }
+            }
+        );
+    }
+
     // ABS_UPDATE_CHECK_V1
     private void checkUpdates() {
         new Thread(() -> {
