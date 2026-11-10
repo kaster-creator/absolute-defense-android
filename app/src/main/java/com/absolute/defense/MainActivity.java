@@ -395,6 +395,51 @@ public class MainActivity extends Activity {
             throw new Exception("Cannot delete update file");
     }
 
+
+    // ABS_UPDATE_ACTIVATION_V1
+    private void activateUpdate() throws Exception {
+        java.io.File base = new java.io.File(
+            getFilesDir(), "game_updates"
+        );
+
+        java.io.File staging = new java.io.File(
+            base, "staging"
+        );
+
+        java.io.File active = new java.io.File(
+            base, "active"
+        );
+
+        java.io.File backup = new java.io.File(
+            base, "previous"
+        );
+
+        if (!new java.io.File(
+            staging, "index.html"
+        ).isFile()) {
+            throw new Exception("Update not ready");
+        }
+
+        deleteUpdateTree(backup);
+
+        if (active.exists() &&
+            !active.renameTo(backup)) {
+            throw new Exception("Backup failed");
+        }
+
+        if (!staging.renameTo(active)) {
+            if (backup.exists()) {
+                backup.renameTo(active);
+            }
+            throw new Exception("Activation failed");
+        }
+
+        android.util.Log.i(
+            "ABS_UPDATE",
+            "Update files activated"
+        );
+    }
+
     @Override public void onBackPressed() {
         new android.app.AlertDialog.Builder(this)
             .setTitle("ABSOLUTE DEFENSE")
