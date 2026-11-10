@@ -228,4 +228,69 @@
 })();
 </script>
 
+
+<style>
+#absChangelog {
+ position:fixed;inset:0;z-index:100100;
+ background:#100d20f5;color:white;
+ padding:24px;overflow:auto;box-sizing:border-box;
+ font-family:Arial,sans-serif
+}
+#absChangelog[hidden]{display:none!important}
+#absChangelog .panel {
+ max-width:440px;margin:8vh auto;padding:22px;
+ background:#281c42;border:2px solid #ad79ed;
+ border-radius:16px
+}
+#absChangelog li{margin:12px 0;line-height:1.4}
+#absChangelog button {
+ padding:14px;background:#773cc2;color:white;
+ border:1px solid #d6aaff;border-radius:10px
+}
+</style>
+<div id="absChangelog" hidden>
+ <div class="panel">
+  <h2>✨ Что нового?</h2>
+  <h3 id="absUpdateTitle"></h3>
+  <ul id="absUpdateList"></ul>
+  <button id="absUpdateClose">▶ Продолжить игру</button>
+ </div>
+</div>
+<script>
+(function(){
+ const release={
+  version:"4.0-season",
+  title:"Сезонный пропуск",
+  changes:[
+   "🏆 Сезон I: Золотое королевство",
+   "⭐ 30 уровней сезона",
+   "⚔️ Новые сезонные задания",
+   "🎁 Награды и кристаллы сезона"
+  ]
+ };
+ const key="absolute_seen_update";
+ const panel=document.getElementById("absChangelog");
+ const list=document.getElementById("absUpdateList");
+ function show(){
+  document.getElementById("absUpdateTitle")
+   .textContent=release.title+" — "+release.version;
+  list.replaceChildren();
+  release.changes.forEach(change=>{
+   const li=document.createElement("li");
+   li.textContent=change;
+   list.appendChild(li);
+  });
+  panel.hidden=false;
+ }
+ document.getElementById("absUpdateClose").onclick=()=>{
+  try{localStorage.setItem(key,release.version)}catch(e){}
+  panel.hidden=true;
+ };
+ window.absoluteShowUpdateHistory=show;
+ try{
+  if(localStorage.getItem(key)!==release.version)show();
+ }catch(e){show()}
+})();
+</script>
+
 </body></html>
