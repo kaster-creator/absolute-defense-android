@@ -69,6 +69,7 @@ public class MainActivity extends Activity {
                     new org.json.JSONObject(out.toString("UTF-8"));
 
                 String version = data.getString("version");
+                downloadUpdatePackage(data);
 
                 android.util.Log.i(
                     "ABS_UPDATE",
@@ -84,6 +85,125 @@ public class MainActivity extends Activity {
                 if (conn != null) conn.disconnect();
             }
         }).start();
+    }
+
+
+    // ABS_PACKAGE_DOWNLOADER_V1
+    private void downloadUpdatePackage(
+        org.json.JSONObject manifest
+    ) throws Exception {
+
+        org.json.JSONObject pkg =
+            manifest.optJSONObject("package");
+
+        if (pkg == null) {
+            android.util.Log.i(
+                "ABS_UPDATE", "No update package published"
+            );
+            return;
+        }
+
+        String version = manifest.getString("version");
+        String urlText = pkg.getString("url");
+        String expected = pkg.getString("sha256")
+            .toLowerCase(java.util.Locale.ROOT);
+
+        if (!expected.matches("[0-9a-f]{64}"))
+            throw new Exception("Invalid SHA-256");
+
+        java.net.URL url = new java.net.URL(urlText);
+
+        if (!"https".equals(url.getProtocol()) ||
+            !"raw.githubusercontent.com".equals(
+                url.getHost())) {
+            throw new Exception("Untrusted download host");
+        }
+
+        java.io.File dir = new java.io.File(
+            getFilesDir(), "game_updates"
+        );
+
+        if (!dir.exists() && !dir.mkdirs())
+            throw new Exception("Cannot create directory");
+
+        java.io.File target =
+            new java.io.File(dir, "pending.zip");
+
+        java.io.File temp =
+            new java.io.File(dir, "pending.tmp");
+
+        java.net.HttpURLConnection connection = null;
+
+        try {
+            connection = (java.net.HttpURLConnection)
+                url.openConnection();
+
+            connection.setConnectTimeout(10000);
+            connection.setReadTimeout(15000);
+
+            if (connection.getResponseCode() != 200)
+                throw new Exception("Download HTTP error");
+
+            java.security.MessageDigest digest =
+                java.security.MessageDigest.getInstance("SHA-256");
+
+            long total = 0;
+            long limit = 20L * 1024 * 1024;
+
+            try (
+                java.io.InputStream input =
+                    connection.getInputStream();
+                java.io.FileOutputStream output =
+                    new java.io.FileOutputStream(temp)
+            ) {
+                byte[] buffer = new byte[8192];
+                int count;
+
+                while ((count = input.read(buffer)) != -1) {
+                    total += count;
+
+                    if (total > limit)
+                        throw new Exception("Package too large");
+
+                    digest.update(buffer, 0, count);
+                    output.write(buffer, 0, count);
+                }
+
+                output.getFD().sync();
+            }
+
+            byte[] hash = digest.digest();
+            StringBuilder actual = new StringBuilder();
+
+            for (byte b : hash)
+                actual.append(
+                    String.format(
+                        java.util.Locale.ROOT,
+                        "%02x", b & 255
+                    )
+                );
+
+            if (!expected.equals(actual.toString()))
+                throw new Exception("SHA-256 mismatch");
+
+            if (target.exists() && !target.delete())
+                throw new Exception("Cannot replace package");
+
+            if (!temp.renameTo(target))
+                throw new Exception("Cannot save package");
+
+            android.util.Log.i(
+                "ABS_UPDATE",
+                "Verified package downloaded: " + version
+            );
+
+        } finally {
+            if (connection != null)
+                connection.disconnect();
+
+            if (temp.exists())
+                temp.delete();
+        }
     }
 
     @Override public void onBackPressed() {
