@@ -86,6 +86,18 @@ public class MainActivity extends Activity {
             ) {
                 return loader.shouldInterceptRequest(request.getUrl());
             }
+
+            // ABS_AUTO_SAVE_BACKUP_V1
+            @Override
+            public void onPageFinished(
+                WebView view, String url
+            ) {
+                super.onPageFinished(view, url);
+
+                if ("file:///android_asset/index.html".equals(url)) {
+                    exportGameSave();
+                }
+            }
         });
         WebSettings settings = webView.getSettings();
         settings.setJavaScriptEnabled(true);
