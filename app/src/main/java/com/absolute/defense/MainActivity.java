@@ -22,6 +22,55 @@ public class MainActivity extends Activity {
         // ABS_ASSET_LOADER_V1
         androidx.webkit.WebViewAssetLoader loader =
             new androidx.webkit.WebViewAssetLoader.Builder()
+                // ABS_ACTIVE_PATH_HANDLER_V1
+                .addPathHandler(
+                    "/updates/",
+                    new androidx.webkit.WebViewAssetLoader.PathHandler() {
+                        @Override
+                        public android.webkit.WebResourceResponse handle(
+                            String path
+                        ) {
+                            try {
+                                java.io.File root = new java.io.File(
+                                    getFilesDir(), "game_updates/active"
+                                );
+
+                                java.io.File file = new java.io.File(
+                                    root, path
+                                );
+
+                                String base = root.getCanonicalPath()
+                                    + java.io.File.separator;
+
+                                if (!file.getCanonicalPath().startsWith(base)
+                                    || !file.isFile()) {
+                                    return null;
+                                }
+
+                                String mime = android.webkit.MimeTypeMap
+                                    .getSingleton()
+                                    .getMimeTypeFromExtension(
+                                        android.webkit.MimeTypeMap
+                                            .getFileExtensionFromUrl(
+                                                file.getName()
+                                            )
+                                    );
+
+                                if (mime == null)
+                                    mime = "application/octet-stream";
+
+                                return new android.webkit.WebResourceResponse(
+                                    mime,
+                                    "UTF-8",
+                                    new java.io.FileInputStream(file)
+                                );
+
+                            } catch (Exception e) {
+                                return null;
+                            }
+                        }
+                    }
+                )
                 .addPathHandler(
                     "/assets/",
                     new androidx.webkit.WebViewAssetLoader
