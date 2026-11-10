@@ -211,6 +211,7 @@ public class MainActivity extends Activity {
                 throw new Exception("Cannot save package");
 
             extractVerifiedPackage(target);
+            activateUpdate();
 
             android.util.Log.i(
                 "ABS_UPDATE",
