@@ -154,6 +154,52 @@ public class MainActivity extends Activity {
         );
     }
 
+
+    // ABS_SAVE_RESTORE_V1
+    private void restoreGameSave() {
+        java.io.File file = new java.io.File(
+            getFilesDir(), "game_save_backup.json"
+        );
+
+        if (!file.isFile()) return;
+
+        try {
+            byte[] bytes = java.nio.file.Files.readAllBytes(
+                file.toPath()
+            );
+
+            String json = new String(
+                bytes,
+                java.nio.charset.StandardCharsets.UTF_8
+            );
+
+            org.json.JSONObject data =
+                new org.json.JSONObject(json);
+
+            String script = "(function(){"
+                + "var data=" + data.toString() + ";"
+                + "for(var k in data){"
+                + "if(Object.prototype.hasOwnProperty.call(data,k)"
+                + " && typeof data[k]==='string'"
+                + " && localStorage.getItem(k)===null){"
+                + "localStorage.setItem(k,data[k]);"
+                + "}"
+                + "}"
+                + "})()";
+
+            webView.evaluateJavascript(script, null);
+
+            android.util.Log.i(
+                "ABS_SAVE", "Restore requested"
+            );
+
+        } catch (Exception e) {
+            android.util.Log.e(
+                "ABS_SAVE", "Restore failed", e
+            );
+        }
+    }
+
     // ABS_UPDATE_CHECK_V1
     private void checkUpdates() {
         new Thread(() -> {
