@@ -19,64 +19,23 @@ public class MainActivity extends Activity {
         webView = new WebView(this);
         webView.setBackgroundColor(0xff171321);
         webView.setWebChromeClient(new WebChromeClient());
+        // ABS_ASSET_LOADER_V1
+        androidx.webkit.WebViewAssetLoader loader =
+            new androidx.webkit.WebViewAssetLoader.Builder()
+                .addPathHandler(
+                    "/assets/",
+                    new androidx.webkit.WebViewAssetLoader
+                        .AssetsPathHandler(this)
+                )
+                .build();
+
         webView.setWebViewClient(new WebViewClient() {
-            // ABS_UPDATE_INTERCEPT_V1
             @Override
             public android.webkit.WebResourceResponse shouldInterceptRequest(
                 WebView view,
                 android.webkit.WebResourceRequest request
             ) {
-                android.net.Uri uri = request.getUrl();
-
-                if (!"file".equals(uri.getScheme()) ||
-                    !"android_asset".equals(uri.getHost())) {
-                    return super.shouldInterceptRequest(view, request);
-                }
-
-                String path = uri.getPath();
-                if (path == null || !path.startsWith("/")) {
-                    return super.shouldInterceptRequest(view, request);
-                }
-
-                java.io.File root = new java.io.File(
-                    getFilesDir(), "game_updates/active"
-                );
-
-                try {
-                    java.io.File file = new java.io.File(
-                        root, path.substring(1)
-                    );
-
-                    String base = root.getCanonicalPath()
-                        + java.io.File.separator;
-
-                    if (!file.getCanonicalPath().startsWith(base) ||
-                        !file.isFile()) {
-                        return super.shouldInterceptRequest(view, request);
-                    }
-
-                    String mime = android.webkit.MimeTypeMap
-                        .getSingleton()
-                        .getMimeTypeFromExtension(
-                            android.webkit.MimeTypeMap
-                                .getFileExtensionFromUrl(
-                                    file.getName()
-                                )
-                        );
-
-                    if (mime == null) {
-                        mime = "application/octet-stream";
-                    }
-
-                    return new android.webkit.WebResourceResponse(
-                        mime,
-                        "UTF-8",
-                        new java.io.FileInputStream(file)
-                    );
-
-                } catch (Exception e) {
-                    return super.shouldInterceptRequest(view, request);
-                }
+                return loader.shouldInterceptRequest(request.getUrl());
             }
         });
         WebSettings settings = webView.getSettings();
@@ -87,7 +46,7 @@ public class MainActivity extends Activity {
         settings.setAllowUniversalAccessFromFileURLs(false);
         settings.setDefaultTextEncodingName("UTF-8");
         setContentView(webView);
-        webView.loadUrl("file:///android_asset/index.html");
+        webView.loadUrl("https://appassets.androidplatform.net/assets/index.html");
         checkUpdates();
     }
 
