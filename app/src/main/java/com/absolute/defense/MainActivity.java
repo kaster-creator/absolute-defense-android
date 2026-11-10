@@ -192,6 +192,8 @@ public class MainActivity extends Activity {
             if (!temp.renameTo(target))
                 throw new Exception("Cannot save package");
 
+            extractVerifiedPackage(target);
+
             android.util.Log.i(
                 "ABS_UPDATE",
                 "Verified package downloaded: " + version
@@ -204,6 +206,134 @@ public class MainActivity extends Activity {
             if (temp.exists())
                 temp.delete();
         }
+    }
+
+
+    // ABS_SAFE_EXTRACT_V1
+    private void extractVerifiedPackage(
+        java.io.File zipFile
+    ) throws Exception {
+
+        java.io.File base = new java.io.File(
+            getFilesDir(), "game_updates"
+        );
+
+        java.io.File staging = new java.io.File(
+            base, "staging"
+        );
+
+        deleteUpdateTree(staging);
+
+        if (!staging.mkdirs())
+            throw new Exception("Cannot create staging");
+
+        try {
+            int files = 0;
+            long total = 0;
+            final long maxTotal = 40L * 1024 * 1024;
+
+            try (java.util.zip.ZipInputStream input =
+                new java.util.zip.ZipInputStream(
+                    new java.io.FileInputStream(zipFile)
+                )) {
+
+                java.util.zip.ZipEntry entry;
+                byte[] buffer = new byte[8192];
+
+                String root = staging.getCanonicalPath()
+                    + java.io.File.separator;
+
+                while ((entry = input.getNextEntry()) != null) {
+                    if (++files > 200)
+                        throw new Exception("Too many files");
+
+                    String name = entry.getName();
+
+                    if (name.startsWith("/") ||
+                        name.contains("\\") ||
+                        name.contains(":"))
+                        throw new Exception("Unsafe ZIP path");
+
+                    java.io.File output = new java.io.File(
+                        staging, name
+                    );
+
+                    String resolved = output.getCanonicalPath();
+
+                    if (!resolved.startsWith(root))
+                        throw new Exception("ZIP path traversal");
+
+                    if (entry.isDirectory()) {
+                        if (!output.isDirectory() &&
+                            !output.mkdirs())
+                            throw new Exception("Directory error");
+                    } else {
+                        java.io.File parent = output.getParentFile();
+
+                        if (!parent.isDirectory() &&
+                            !parent.mkdirs())
+                            throw new Exception("Directory error");
+
+                        try (java.io.FileOutputStream stream =
+                            new java.io.FileOutputStream(output)) {
+
+                            int n;
+                            while ((n = input.read(buffer)) != -1) {
+                                total += n;
+
+                                if (total > maxTotal)
+                                    throw new Exception("ZIP too large");
+
+                                stream.write(buffer, 0, n);
+                            }
+                        }
+                    }
+
+                    input.closeEntry();
+                }
+            }
+
+            for (String required : new String[]{
+                "index.html", "script.js", "style.css"
+            }) {
+                java.io.File file = new java.io.File(
+                    staging, required
+                );
+
+                if (!file.isFile() || file.length() == 0)
+                    throw new Exception(
+                        "Missing game file: " + required
+                    );
+            }
+
+            android.util.Log.i(
+                "ABS_UPDATE",
+                "Game package extracted and validated"
+            );
+
+        } catch (Exception e) {
+            deleteUpdateTree(staging);
+            throw e;
+        }
+    }
+
+    private void deleteUpdateTree(
+        java.io.File file
+    ) throws Exception {
+        if (!file.exists()) return;
+
+        if (file.isDirectory()) {
+            java.io.File[] children = file.listFiles();
+
+            if (children == null)
+                throw new Exception("Cannot list directory");
+
+            for (java.io.File child : children)
+                deleteUpdateTree(child);
+        }
+
+        if (!file.delete())
+            throw new Exception("Cannot delete update file");
     }
 
     @Override public void onBackPressed() {
