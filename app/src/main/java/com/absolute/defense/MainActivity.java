@@ -84,7 +84,53 @@ public class MainActivity extends Activity {
                 WebView view,
                 android.webkit.WebResourceRequest request
             ) {
+                
+                // ABS_FILE_UPDATE_INTERCEPT_V1
+                try {
+                    android.net.Uri uri = request.getUrl();
+
+                    if ("file".equals(uri.getScheme())
+                        && "android_asset".equals(uri.getHost())) {
+
+                        String path = uri.getPath();
+
+                        if (path != null && path.startsWith("/")) {
+                            String name = path.substring(1);
+
+                            // Не подменяем HTML: сохраняем origin игры
+                            if (name.equals("script.js")
+                                || name.equals("style.css")) {
+
+                                java.io.File root = new java.io.File(
+                                    getFilesDir(), "game_updates/active"
+                                );
+
+                                java.io.File file = new java.io.File(
+                                    root, name
+                                );
+
+                                if (file.isFile()) {
+                                    String mime = name.endsWith(".js")
+                                        ? "application/javascript"
+                                        : "text/css";
+
+                                    return new android.webkit.WebResourceResponse(
+                                        mime,
+                                        "UTF-8",
+                                        new java.io.FileInputStream(file)
+                                    );
+                                }
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    android.util.Log.e(
+                        "ABS_UPDATE", "Resource interception failed", e
+                    );
+                }
+
                 return loader.shouldInterceptRequest(request.getUrl());
+
             }
 
             // ABS_AUTO_SAVE_BACKUP_V1
