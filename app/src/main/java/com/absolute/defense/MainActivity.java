@@ -272,6 +272,19 @@ public class MainActivity extends Activity {
         }
 
         String version = manifest.getString("version");
+
+        // ABS_UPDATE_VERSION_GUARD_V1
+        android.content.SharedPreferences prefs =
+            getSharedPreferences("abs_updates", MODE_PRIVATE);
+
+        if (version.equals(
+                prefs.getString("installed_version", ""))) {
+            android.util.Log.i(
+                "ABS_UPDATE", "Version already installed"
+            );
+            return;
+        }
+
         String urlText = pkg.getString("url");
         String expected = pkg.getString("sha256")
             .toLowerCase(java.util.Locale.ROOT);
@@ -362,6 +375,10 @@ public class MainActivity extends Activity {
 
             extractVerifiedPackage(target);
             activateUpdate();
+
+            prefs.edit()
+                .putString("installed_version", version)
+                .apply();
 
             android.util.Log.i(
                 "ABS_UPDATE",
