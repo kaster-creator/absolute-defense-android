@@ -1,13 +1,14 @@
 {
-  "version": "5.0.2",
-  "title": "ABSOLUTE DEFENSE 5.0.2",
+  "version": "5.0.3",
+  "title": "ABSOLUTE DEFENSE 5.0.3",
   "changes": [
-    "Тест автоматического обновления",
-    "Новая надпись в главном меню",
-    "Обновление без установки APK"
+    "Добавлено секретное меню ABSOLUTE CONTROL",
+    "Вход после пяти нажатий на название игры",
+    "Окно ввода пароля владельца",
+    "Меню с 50 будущими админ-функциями"
   ],
   "package": {
-    "url": "https://raw.githubusercontent.com/kaster-creator/absolute-defense-android/auto-updates-5/updates/game-5.0.2.zip",
-    "sha256": "086c2b488b0707920683f94517b43b1fca518c83646e457a88a4e31d82d6afd2"
+    "url": "https://raw.githubusercontent.com/kaster-creator/absolute-defense-android/auto-updates-5/updates/game-5.0.3.zip",
+    "sha256": "4d60aee8baf1abedaf41580eec66a1ae29ed479d8ca297f239f281511ac58e97"
   }
 }
