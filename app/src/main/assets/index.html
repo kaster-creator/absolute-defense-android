@@ -318,4 +318,178 @@ border-radius:8px;font:12px sans-serif">
 ABSOLUTE DEFENSE 5.0.1
 </div>
 
+
+<!-- ABS_CONTROL_V1 -->
+<style>
+#acOverlay{
+ position:fixed;inset:0;z-index:999999;
+ background:rgba(8,5,18,.96);
+ display:none;align-items:center;
+ justify-content:center;padding:15px;
+ font-family:Arial,sans-serif
+}
+#acBox{
+ width:min(100%,440px);max-height:90vh;
+ overflow:auto;box-sizing:border-box;
+ background:#1b1429;color:white;
+ border:2px solid #e9bd65;
+ border-radius:18px;padding:20px;
+ text-align:center
+}
+#acBox h2{color:#f4cb77}
+#acBox input{
+ box-sizing:border-box;width:100%;
+ background:#100b19;color:white;
+ border:1px solid #ad91d2;
+ border-radius:9px;padding:13px;
+ font-size:16px
+}
+#acBox button{
+ background:#e9bd65;color:#1b1429;
+ border:0;border-radius:9px;
+ padding:12px;margin:7px;
+ font-weight:bold
+}
+#acGrid{
+ display:grid;
+ grid-template-columns:1fr 1fr;
+ gap:8px;margin:15px 0
+}
+.acItem{
+ background:#332443;
+ padding:12px 5px;
+ border-radius:9px;font-size:13px
+}
+</style>
+<div id="acOverlay">
+ <div id="acBox">
+  <h2>👑 ABSOLUTE CONTROL</h2>
+  <div id="acLogin">
+   <p>OWNER ACCESS</p>
+   <input id="acPass" type="password"
+          placeholder="Пароль владельца">
+   <p id="acMessage"></p>
+   <button id="acEnter">ВОЙТИ</button>
+  </div>
+  <div id="acPanel" style="display:none">
+   <p>👑 ADMIN CHAOS • 50 FUNCTIONS</p>
+   <div id="acGrid"></div>
+   <p style="color:#bfaed6;font-size:12px">
+    Функции подготовлены к подключению.
+    Глобальные команды пока отключены.
+   </p>
+  </div>
+  <button id="acClose">ЗАКРЫТЬ</button>
+ </div>
+</div>
+<script>
+(()=>{
+ const HASH="0d6bdc88884d57a214ff7958c1a9afbc6996b9011e3f3833250c56cb408899ac";
+ const title=document.querySelector("header h1");
+ const overlay=document.getElementById("acOverlay");
+ const login=document.getElementById("acLogin");
+ const panel=document.getElementById("acPanel");
+ const pass=document.getElementById("acPass");
+ const msg=document.getElementById("acMessage");
+ const grid=document.getElementById("acGrid");
+
+ const features=[
+ "Кровавая луна","Метеоритный дождь",
+ "Ледяной апокалипсис","Торнадо",
+ "Радужный мир","Затмение",
+ "Гроза богов","Вулкан",
+ "Космическое вторжение","Перевёрнутый мир",
+ "Король драконов","Армия скелетов",
+ "Демон хаоса","Зомби-апокалипсис",
+ "Гигантские враги","Мутации",
+ "Инопланетяне","Клоны боссов",
+ "Босс разработчика","Рулетка боссов",
+ "Дождь монет","Алмазный дождь",
+ "Сундуки с неба","Промокоды",
+ "Титул создателя","Эксклюзивные скины",
+ "Золотой час","Колесо удачи",
+ "Мистические ящики","Джекпот",
+ "Бессмертие замка","Турбо-башни",
+ "Суперурон","Заморозка времени",
+ "Объявления","Фейерверк",
+ "Размер врагов","Управление волнами",
+ "Админ-магазин","Остановка событий",
+ "Голосование","Таблица участников",
+ "История событий","Таймер ивента",
+ "Глобальные задания","Случайный хаос",
+ "Командное испытание","Монета удачи",
+ "Золотой замок","MEGA EVENT"
+ ];
+
+ features.forEach((name,i)=>{
+  const item=document.createElement("div");
+  item.className="acItem";
+  item.textContent=(i+1)+". "+name;
+  grid.appendChild(item);
+ });
+
+ let taps=0,firstTap=0,failures=0,blocked=0;
+
+ if(title){
+  title.addEventListener("click",()=>{
+   const now=Date.now();
+   if(now-firstTap>3000){
+    taps=0;firstTap=now;
+   }
+   taps++;
+   if(taps>=5){
+    taps=0;
+    overlay.style.display="flex";
+   }
+  });
+ }
+
+ async function hash(text){
+  const data=new TextEncoder().encode(text);
+  const result=await crypto.subtle.digest(
+   "SHA-256",data
+  );
+  return Array.from(new Uint8Array(result))
+   .map(x=>x.toString(16).padStart(2,"0"))
+   .join("");
+ }
+
+ document.getElementById("acEnter")
+ .addEventListener("click",async()=>{
+  if(Date.now()<blocked){
+   msg.textContent="Подожди 60 секунд";
+   return;
+  }
+  try{
+   const valid=await hash(pass.value)===HASH;
+   pass.value="";
+   if(valid){
+    failures=0;
+    login.style.display="none";
+    panel.style.display="block";
+   }else{
+    failures++;
+    msg.textContent="Неверный пароль";
+    if(failures>=5){
+     failures=0;
+     blocked=Date.now()+60000;
+     msg.textContent="Блокировка на 60 секунд";
+    }
+   }
+  }catch(e){
+   msg.textContent="Ошибка проверки";
+  }
+ });
+
+ document.getElementById("acClose")
+ .addEventListener("click",()=>{
+  overlay.style.display="none";
+  login.style.display="block";
+  panel.style.display="none";
+  pass.value="";
+  msg.textContent="";
+ });
+})();
+</script>
+
 </body></html>
