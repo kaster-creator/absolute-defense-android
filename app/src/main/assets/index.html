@@ -615,4 +615,379 @@ ABSOLUTE DEFENSE 5.0.1
 })();
 </script>
 
+
+<!-- ABS_FIREBASE_GLOBAL_V1 -->
+<style>
+#acFirebaseLogin {
+ padding:12px;
+ margin:10px 0;
+ background:#30213f;
+ border:1px solid #d4a85d;
+ border-radius:12px;
+}
+#acFirebaseLogin input {
+ display:block;
+ width:100%;
+ box-sizing:border-box;
+ margin:8px 0;
+ padding:12px;
+ background:#171020;
+ color:white;
+ border:1px solid #9d7ac3;
+ border-radius:8px;
+}
+#acFirebaseInfo {
+ font:12px Arial;
+ color:#e9c987;
+ margin:8px 0;
+}
+#acGrid .acItem {
+ cursor:pointer;
+ border:1px solid #654c80;
+}
+#acGrid .acItem:active {
+ background:#755096;
+}
+#acFirebaseBanner {
+ display:none;
+ position:fixed;
+ left:10px;
+ right:10px;
+ bottom:12px;
+ z-index:999990;
+ background:#251636;
+ border:2px solid #e9bd65;
+ border-radius:12px;
+ padding:12px;
+ color:#fff;
+ text-align:center;
+ font:bold 14px Arial;
+ box-shadow:0 5px 25px #0009;
+}
+#acFirebaseBanner small {
+ display:block;
+ margin-top:5px;
+ color:#f5d18b;
+}
+</style>
+
+<div id="acFirebaseBanner">
+ <div id="acFirebaseEventTitle"></div>
+ <small id="acFirebaseEventTimer"></small>
+</div>
+
+<script>
+(()=>{
+"use strict";
+
+const API_KEY =
+ "AIzaSyCqUmfXvPpqT8Tyfp3qhzF4rObtjHat6bw";
+
+const DB =
+ "https://absolute-control-events-6-default-rtdb.firebaseio.com";
+
+const OWNER =
+ "SnZUzF71UDN4LrXjlPAHLLVQQY62";
+
+const PATH = DB + "/globalEvents.json";
+
+let token = "";
+let currentKey = "";
+let currentEvent = null;
+let lastError = "";
+let requestBusy = false;
+
+const panel = document.getElementById("acPanel");
+const grid = document.getElementById("acGrid");
+const overlay = document.getElementById("acOverlay");
+const banner = document.getElementById("acFirebaseBanner");
+const bannerTitle =
+ document.getElementById("acFirebaseEventTitle");
+const bannerTimer =
+ document.getElementById("acFirebaseEventTimer");
+
+const login = document.createElement("div");
+login.id = "acFirebaseLogin";
+login.innerHTML = `
+ <strong>🌍 GLOBAL CONTROL — FIREBASE</strong>
+ <input id="acOwnerEmail"
+  type="email" placeholder="Email владельца">
+ <input id="acOwnerPassword"
+  type="password" placeholder="Пароль Firebase">
+ <button id="acOwnerSignIn">
+  🔐 ВОЙТИ В FIREBASE
+ </button>
+ <p id="acFirebaseInfo">
+  Войди в аккаунт владельца для запуска событий.
+ </p>
+`;
+
+panel.insertBefore(login,grid);
+
+const email =
+ document.getElementById("acOwnerEmail");
+const password =
+ document.getElementById("acOwnerPassword");
+const info =
+ document.getElementById("acFirebaseInfo");
+
+function message(s){
+ info.textContent=s;
+}
+
+function stopVisual(){
+ currentKey="";
+ currentEvent=null;
+ banner.style.display="none";
+ document.querySelector("main").style.filter="";
+ const old=document.getElementById("acGlobalEvent");
+ if(old)old.style.display="none";
+}
+
+function renderEvent(data){
+ if(!data || typeof data!=="object"){
+  stopVisual();
+  return;
+ }
+
+ const id=Number(data.id);
+ const start=Number(data.startedAt);
+ const duration=Number(data.duration);
+
+ if(!Number.isInteger(id) ||
+    id<0 || id>=50 ||
+    !Number.isFinite(start) ||
+    !Number.isFinite(duration)){
+  stopVisual();
+  return;
+ }
+
+ const remaining=Math.ceil(
+  (start+duration*1000-Date.now())/1000
+ );
+
+ if(remaining<=0){
+  stopVisual();
+  return;
+ }
+
+ const key=JSON.stringify([
+  id,start,duration,data.name
+ ]);
+
+ if(key!==currentKey){
+  currentKey=key;
+  currentEvent=data;
+
+  window.dispatchEvent(new CustomEvent(
+   "absolute:global-event",{
+    detail:data
+   }
+  ));
+ }
+
+ const name=String(data.name||"Событие");
+
+ bannerTitle.textContent=
+  "🌍 ГЛОБАЛЬНОЕ СОБЫТИЕ: "+name;
+
+ bannerTimer.textContent=
+  "Осталось: "+remaining+" сек";
+
+ banner.style.display="block";
+
+ const themes=[
+  "hue-rotate(315deg)",
+  "contrast(1.3)",
+  "saturate(1.6)",
+  "brightness(1.18)",
+  "hue-rotate(65deg)"
+ ];
+
+ const main=document.querySelector("main");
+
+ if(main){
+  main.style.filter=themes[
+   Math.floor(id/10)%5
+  ];
+ }
+}
+
+async function checkEvent(){
+ if(requestBusy)return;
+ requestBusy=true;
+
+ try{
+  const response=await fetch(
+   PATH+"?t="+Date.now(),
+   {cache:"no-store"}
+  );
+
+  if(!response.ok){
+   throw Error("HTTP "+response.status);
+  }
+
+  const data=await response.json();
+  lastError="";
+  renderEvent(data);
+ }catch(e){
+  lastError=String(e.message||e);
+  // При потере сети не показываем
+  // новое событие без подтверждения.
+ }finally{
+  requestBusy=false;
+ }
+}
+
+async function signIn(){
+ const e=email.value.trim();
+ const p=password.value;
+
+ if(!e||!p){
+  message("Введи email и пароль Firebase");
+  return;
+ }
+
+ message("Подключаемся...");
+
+ try{
+  const response=await fetch(
+   "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key="+API_KEY,
+   {
+    method:"POST",
+    headers:{
+     "Content-Type":"application/json"
+    },
+    body:JSON.stringify({
+     email:e,
+     password:p,
+     returnSecureToken:true
+    })
+   }
+  );
+
+  const data=await response.json();
+  password.value="";
+
+  if(!response.ok){
+   throw Error(
+    data.error?.message||"Ошибка входа"
+   );
+  }
+
+  if(data.localId!==OWNER){
+   token="";
+   message("Этот аккаунт не является владельцем");
+   return;
+  }
+
+  token=data.idToken;
+
+  message(
+   "✅ Владелец подтверждён. " +
+   "Глобальные команды доступны."
+  );
+ }catch(e){
+  token="";
+  message("Ошибка: "+String(e.message||e));
+ }
+}
+
+document.getElementById("acOwnerSignIn")
+ .addEventListener("click",signIn);
+
+async function publishEvent(id,name){
+ if(!token){
+  message("Сначала войди через Firebase");
+  return;
+ }
+
+ const now=Date.now();
+
+ const payload={
+  id:id,
+  name:name,
+  duration:id===39?1:300,
+  startedAt:id===39?now-10000:now
+ };
+
+ message("Отправляем событие...");
+
+ try{
+  const response=await fetch(
+   PATH+"?auth="+encodeURIComponent(token),
+   {
+    method:"PUT",
+    headers:{
+     "Content-Type":"application/json"
+    },
+    body:JSON.stringify(payload)
+   }
+  );
+
+  if(!response.ok){
+   const error=await response.text();
+   throw Error(
+    response.status+" "+error.slice(0,100)
+   );
+  }
+
+  message(
+   id===39
+    ?"🛑 Событие остановлено у игроков"
+    :"🌍 Событие отправлено всем игрокам!"
+  );
+
+  await checkEvent();
+ }catch(e){
+  message(
+   "Не удалось отправить: "+
+   String(e.message||e)
+  );
+ }
+}
+
+// Перехватываем нажатия на настоящие
+// 50 элементов меню, а не ищем button.
+grid.addEventListener("click",event=>{
+ const item=event.target.closest(".acItem");
+
+ if(!item||!grid.contains(item))return;
+
+ event.preventDefault();
+ event.stopPropagation();
+ event.stopImmediatePropagation();
+
+ const items=Array.from(
+  grid.querySelectorAll(".acItem")
+ );
+
+ const id=items.indexOf(item);
+ if(id<0||id>=50)return;
+
+ const name=item.textContent
+  .replace(/^\s*\d+\.\s*/,"")
+  .trim();
+
+ publishEvent(id,name);
+},true);
+
+// Получение событий для всех игроков.
+checkEvent();
+setInterval(checkEvent,4000);
+
+// Обновляем обратный отсчёт каждую секунду.
+setInterval(()=>{
+ if(currentEvent)renderEvent(currentEvent);
+},1000);
+
+// Не сохраняем пароль и токен в файлы.
+window.addEventListener("pagehide",()=>{
+ token="";
+ password.value="";
+});
+
+})();
+</script>
+
 </body></html>
