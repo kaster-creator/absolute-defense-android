@@ -1,14 +1,16 @@
 {
-  "version": "5.0.3",
-  "title": "ABSOLUTE DEFENSE 5.0.3",
+  "version": "6.0.0",
+  "title": "ABSOLUTE DEFENSE 6.0",
   "changes": [
-    "Добавлено секретное меню ABSOLUTE CONTROL",
-    "Вход после пяти нажатий на название игры",
-    "Окно ввода пароля владельца",
-    "Меню с 50 будущими админ-функциями"
+    "ABSOLUTE CONTROL GLOBAL",
+    "Подключение Firebase",
+    "Глобальная отправка событий",
+    "Синхронизация событий игроков",
+    "Авторизация владельца",
+    "Таймеры и визуальные эффекты"
   ],
   "package": {
-    "url": "https://raw.githubusercontent.com/kaster-creator/absolute-defense-android/auto-updates-5/updates/game-5.0.3.zip",
-    "sha256": "4d60aee8baf1abedaf41580eec66a1ae29ed479d8ca297f239f281511ac58e97"
+    "url": "https://raw.githubusercontent.com/kaster-creator/absolute-defense-android/auto-updates-5/updates/game-6.0.0.zip",
+    "sha256": "de56f65704640505dece8dc0505a9d51819b9d69cf83188003a1e949ffbfaaa6"
   }
 }
