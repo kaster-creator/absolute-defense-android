@@ -1,0 +1,16 @@
+{
+  "version": "6.0-beta",
+  "title": "ABSOLUTE DEFENSE 6.0 BETA",
+  "changes": [
+    "ABSOLUTE CONTROL GLOBAL BETA",
+    "Авторизация владельца через Firebase",
+    "Отправка глобальных событий",
+    "Получение событий через интернет",
+    "Синхронизация таймера",
+    "Тестовые визуальные эффекты"
+  ],
+  "package": {
+    "url": "https://raw.githubusercontent.com/kaster-creator/absolute-defense-android/absolute-control-events-6/updates/game-6.0-beta.zip",
+    "sha256": "4b7ff54bd0ffd592ed5920960f9d1264fa8cc34ae285d31af487054be249bc3b"
+  }
+}
