@@ -1,16 +1,19 @@
 {
-  "version": "6.0.0",
-  "title": "ABSOLUTE DEFENSE 6.0",
+  "version": "7.0.0",
+  "title": "ABSOLUTE DEFENSE 7.0",
   "changes": [
-    "ABSOLUTE CONTROL GLOBAL",
-    "Подключение Firebase",
-    "Глобальная отправка событий",
-    "Синхронизация событий игроков",
-    "Авторизация владельца",
-    "Таймеры и визуальные эффекты"
+    "ABSOLUTE CONTROL 7.0",
+    "Глобальные события через Firebase",
+    "Алмазный дождь и награды",
+    "Нашествия врагов и боссы",
+    "Катастрофы и события мира",
+    "Админские способности",
+    "Магазин и промокоды",
+    "Выбор длительности событий",
+    "Голосования и история событий"
   ],
   "package": {
-    "url": "https://raw.githubusercontent.com/kaster-creator/absolute-defense-android/auto-updates-5/updates/game-6.0.0.zip",
-    "sha256": "de56f65704640505dece8dc0505a9d51819b9d69cf83188003a1e949ffbfaaa6"
+    "url": "https://raw.githubusercontent.com/kaster-creator/absolute-defense-android/auto-updates-5/updates/game-7.0.0.zip",
+    "sha256": "3812815748cac2d46c361356b5c5b169bb740203cf56b53997a3e7d2a5a9bf59"
   }
 }
