@@ -1,15 +1,19 @@
 {
-  "version": "7.1.0",
-  "title": "ABSOLUTE DEFENSE 7.1",
+  "version": "8.0.0",
+  "title": "ABSOLUTE DEFENSE 8.0",
   "changes": [
-    "Исправлены устаревшие надписи версии",
-    "Убрана зелёная тестовая плашка",
-    "Кнопка сезона больше не перекрывает игру",
-    "Админ-панель получила поиск событий",
-    "Добавлены категории и удобная прокрутка"
+    "Полностью обновлён интерфейс игры",
+    "Новое оформление главного меню",
+    "Улучшены кнопки управления башнями",
+    "Обновлён внешний вид магазина",
+    "Переработана панель статистики",
+    "Улучшена админ-панель ABSOLUTE CONTROL",
+    "Исправлено расположение кнопки сезона",
+    "Убраны устаревшие надписи версии",
+    "Адаптация интерфейса для Android"
   ],
   "package": {
-    "url": "https://raw.githubusercontent.com/kaster-creator/absolute-defense-android/auto-updates-5/updates/game-7.1.0.zip",
-    "sha256": "0c16a02012aefe773953f93e2c1df9225c0d7417ac0d290ff8ea0da80af61c3e"
+    "url": "https://raw.githubusercontent.com/kaster-creator/absolute-defense-android/auto-updates-5/updates/game-8.0.0.zip",
+    "sha256": "f08a8e4a0b8bb629170fa35bbf05d2ae95f48187fb782709abf1522f52ce830b"
   }
 }
