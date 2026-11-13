@@ -1080,4 +1080,185 @@ window.addEventListener("pagehide",()=>{
 })();
 </script>
 
+
+<!-- ABS_ADMIN_STAGE5_70 -->
+<style>
+#absStage570{
+ background:#241b34;
+ color:#fff;
+ border:1px solid #c9a65b;
+ border-radius:12px;
+ padding:12px;
+ margin:12px 0;
+}
+#absStage570 button,
+#absStage570 input,
+#absStage570 select{
+ box-sizing:border-box;
+ width:100%;
+ padding:10px;
+ margin:5px 0;
+ border-radius:8px;
+}
+#absStage570 input,
+#absStage570 select{
+ background:#171120;
+ color:#fff;
+ border:1px solid #9472b2;
+}
+#absStage570 section{
+ border-top:1px solid #57436d;
+ padding-top:10px;
+ margin-top:10px;
+}
+#absStage570 p{
+ overflow-wrap:anywhere;
+}
+</style>
+<script>
+(()=>{
+ const panel=document.getElementById("acPanel");
+ if(!panel)return;
+
+ const box=document.createElement("div");
+ box.id="absStage570";
+ box.innerHTML=`
+ <h3>👑 ABSOLUTE CONTROL 7.0</h3>
+ <small>Этап 5 — локальные системы</small>
+
+ <section>
+ <h4>🎁 Промокоды</h4>
+ <input id="absPromo70"
+ placeholder="Введи промокод">
+ <button id="absRedeem70">Активировать</button>
+ <p id="absPromoResult70"></p>
+ </section>
+
+ <section>
+ <h4>🗳 Голосование</h4>
+ <select id="absVote70">
+ <option value="boss">Новый босс</option>
+ <option value="rain">Алмазный дождь</option>
+ <option value="coins">Дождь монет</option>
+ </select>
+ <button id="absVoteBtn70">Голосовать</button>
+ <p id="absVoteResult70"></p>
+ </section>
+
+ <section>
+ <h4>🎯 Глобальные задания</h4>
+ <p>Играй 60 секунд и получи 25 монет.</p>
+ <p id="absTaskResult70"></p>
+ </section>
+
+ <section>
+ <h4>📊 Таблица активности</h4>
+ <p id="absStatsResult70"></p>
+ <button id="absRefresh70">Обновить</button>
+ </section>
+
+ <section>
+ <h4>📜 История событий</h4>
+ <div id="absHistory70"></div>
+ </section>
+ `;
+
+ panel.appendChild(box);
+
+ const $=id=>document.getElementById(id);
+ const read=(key,fallback)=>{
+  try{
+   return JSON.parse(
+    localStorage.getItem(key)||JSON.stringify(fallback)
+   );
+  }catch(e){
+   return fallback;
+  }
+ };
+
+ function refresh(){
+  const api=window.absoluteStage5;
+  if(api){
+   const s=api.status();
+   $("absStatsResult70").textContent=
+    "Волна: "+s.wave+
+    " | Монеты: "+s.gold+
+    " | Изумруды: "+s.gems+
+    " | Очки: "+s.score;
+  }
+
+  $("absTaskResult70").textContent=
+   "Выполнено минутных заданий: "+
+   (localStorage.getItem("absTasks70")||"0");
+
+  const votes=read("absVotes70",{});
+  $("absVoteResult70").textContent=
+   "Локальные голоса: "+
+   JSON.stringify(votes);
+
+  const history=read("absHistory70",[]);
+  const holder=$("absHistory70");
+  holder.replaceChildren();
+
+  history.slice().reverse().forEach(entry=>{
+   const line=document.createElement("p");
+   line.textContent=
+    new Date(entry.time).toLocaleString()+
+    " — "+entry.name;
+   holder.appendChild(line);
+  });
+
+  if(!history.length){
+   holder.textContent="Событий пока нет";
+  }
+ }
+
+ $("absRedeem70").onclick=()=>{
+  const api=window.absoluteStage5;
+  $("absPromoResult70").textContent=api
+   ?api.redeem($("absPromo70").value)
+   :"Игровой модуль недоступен";
+  refresh();
+ };
+
+ $("absVoteBtn70").onclick=()=>{
+  const value=$("absVote70").value;
+  const votes=read("absVotes70",{});
+  votes[value]=(votes[value]||0)+1;
+  localStorage.setItem(
+   "absVotes70",JSON.stringify(votes)
+  );
+  refresh();
+ };
+
+ $("absRefresh70").onclick=refresh;
+
+ window.addEventListener(
+  "absolute:global-event",
+  event=>{
+   const d=event.detail||{};
+   const key=String(d.id)+":"+
+             String(d.startedAt);
+   const history=read("absHistory70",[]);
+
+   if(history.some(x=>x.key===key))return;
+
+   history.push({
+    key,
+    name:String(d.name||"Событие").slice(0,100),
+    time:Date.now()
+   });
+
+   localStorage.setItem(
+    "absHistory70",
+    JSON.stringify(history.slice(-50))
+   );
+   refresh();
+  }
+ );
+
+ refresh();
+})();
+</script>
+
 </body></html>

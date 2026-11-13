@@ -483,7 +483,69 @@ window.addEventListener(
  }
 );
 
-function update(dt){adminPowerTick();
+
+// ABS_ADMIN_STAGE5_GAME
+const absStats={
+ seconds:0,
+ lastReward:0
+};
+
+window.absoluteStage5={
+ status(){
+  return {
+   playing,
+   wave,
+   gold,
+   gems,
+   hp,
+   score
+  };
+ },
+ redeem(code){
+  if(!playing)return "Сначала начни игру";
+  const codes={
+   "ABS70":{gold:100,gems:2},
+   "DEFENSE":{gold:200,gems:0}
+  };
+  const key=String(code).trim().toUpperCase();
+  const reward=codes[key];
+  if(!reward)return "Промокод не найден";
+
+  const used=JSON.parse(
+   localStorage.getItem("absPromoUsed70")||"[]"
+  );
+  if(used.includes(key))
+   return "Промокод уже использован";
+
+  gold+=reward.gold;
+  gems+=reward.gems;
+  used.push(key);
+  localStorage.setItem(
+   "absPromoUsed70",JSON.stringify(used)
+  );
+  updateGems();
+  sync();
+  return "Награда: "+reward.gold+
+   " монет, "+reward.gems+" изумрудов";
+ },
+ tick(dt){
+  if(!playing)return;
+  absStats.seconds+=Math.min(dt,.06);
+  const total=Math.floor(absStats.seconds);
+  if(total>=60 && total-absStats.lastReward>=60){
+   absStats.lastReward=total;
+   const count=Number(
+    localStorage.getItem("absTasks70")||0
+   )+1;
+   localStorage.setItem("absTasks70",String(count));
+   gold+=25;
+   sync();
+   notice("🎯 Задание: +25 монет за минуту игры!");
+  }
+ }
+};
+
+function update(dt){window.absoluteStage5.tick(dt);adminPowerTick();
 if(adminPowerActive(30)){
  hp=20;
  wallHp=walls[ownedWall].hp;
