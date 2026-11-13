@@ -1,3 +1,565 @@
 *{box-sizing:border-box}html,body{margin:0;background:#100e17;color:#fff0d5;font-family:system-ui,-apple-system,Arial,sans-serif;touch-action:pan-y}body{min-height:100dvh;background:radial-gradient(ellipse at top,#34233a,#100e17 70%)}.shell{width:min(100%,440px);margin:auto;padding:12px 12px max(16px,env(safe-area-inset-bottom))}header{display:flex;align-items:center;justify-content:space-between;margin:3px 0 12px}header small{color:#dca666;font-size:10px;letter-spacing:1.5px}h1{font-size:21px;margin:4px 0 0;color:#ffd48b;text-shadow:2px 2px #61351e;letter-spacing:.6px}button{font:inherit;cursor:pointer;border:2px solid #8b6039;border-radius:9px;background:#3b2a31;color:#ffe6b9;font-weight:800;box-shadow:0 3px #1a131b}button:active{transform:translateY(2px);box-shadow:0 1px #1a131b}button:disabled{opacity:.45;cursor:default}#sound{padding:9px 12px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:10px}.stats>div{border:1px solid #6d4a36;background:#271e2b;border-radius:7px;padding:7px 2px;text-align:center;font-size:11px}.stats b{display:block;font-size:17px;color:#ffd17c;margin-top:2px}.stage{position:relative;width:100%;aspect-ratio:360/560;border:4px solid #79502f;border-radius:8px;overflow:hidden;box-shadow:0 7px 0 #3b251f,0 12px 28px #0008;background:#384e35;touch-action:none}canvas{display:block;width:100%;height:100%;image-rendering:pixelated;touch-action:none}.overlay{position:absolute;inset:0;background:#120f1bc9;display:flex;align-items:center;justify-content:center;padding:18px}.overlay.hidden{display:none}.modal{width:100%;border:3px solid #b27c3c;background:#251c2b;padding:22px 16px;text-align:center;box-shadow:0 7px #100d14}.crest{font-size:55px}.modal h2{color:#ffcb78;margin:10px 0;font-size:24px}.modal p{font-size:14px;line-height:1.55;color:#e4d0bd}.modal button{background:#d58b3c;color:#23151c;border-color:#f8c373;padding:13px 20px;width:100%;margin:10px 0 14px}.modal small{display:block;color:#bca793}.toolbar{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:15px}.tower{display:flex;flex-direction:column;align-items:center;padding:8px 3px;gap:2px;background:#302532;border-color:#684d44}.tower span{font-size:25px}.tower b{font-size:13px}.tower small{font-size:12px;color:#f2b55c}.tower.selected{border-color:#ffd073;background:#62402d;box-shadow:0 3px #24151b,0 0 12px #d68a3955}.actions{display:grid;grid-template-columns:1.6fr 1fr .7fr;gap:6px;margin-top:12px}.actions button{font-size:11px;padding:12px 4px}.actions #waveBtn{background:#c88335;color:#241923;border-color:#f7b968}#hint{font-size:12px;line-height:1.5;color:#e2c9a8;min-height:35px;text-align:center;margin:11px 2px}footer{text-align:center;color:#927f80;font-size:10px;margin-top:8px}@media(max-width:360px){h1{font-size:17px}.stats>div{font-size:10px}.actions button{font-size:10px}}
 
 .kingdom-nav{display:grid;grid-template-columns:1fr 1fr auto;gap:6px;margin-bottom:9px;align-items:center}.kingdom-nav button{padding:9px 3px;font-size:11px}.kingdom-nav>div{padding:8px;background:#283327;border:1px solid #5e8452;border-radius:8px;color:#9ff2bd;font-weight:900}.kingdom-screen{position:absolute;inset:0;background:#100e17ee;z-index:5;display:flex;align-items:center;justify-content:center;padding:12px;overflow:auto}.kingdom-screen.hidden{display:none}.kingdom-panel{width:100%;max-height:100%;overflow:auto;text-align:center;background:#251c2b;border:3px solid #b27c3c;padding:12px;box-shadow:0 6px #100d14}.kingdom-panel h2{font-size:19px;color:#ffd48b;margin:6px}.kingdom-panel p{font-size:12px;color:#e2c9a8}.kingdom-crest{font-size:37px}.mode-list{display:grid;gap:7px;margin:10px 0}.mode-list button,.kingdom-panel>button,.shop-item button{padding:9px 7px;background:#80512e;color:#fff0d5}.mode-list button{display:flex;justify-content:space-between;align-items:center;text-align:left}.mode-list small{color:#ffe0a4}.shop-item{display:flex;align-items:center;justify-content:space-between;text-align:left;border:1px solid #715437;padding:7px;margin:7px 0;gap:8px;font-size:12px}.shop-item b{display:block;color:#ffd68d}.shop-item small{display:block;color:#c6b7a5}.shop-item button{flex-shrink:0;font-size:11px}.kingdom-panel>button{width:100%;margin-top:8px}.kingdom-panel>small{display:block;color:#a9a099;margin-top:8px}
+
+
+
+/* ABS_FULL_UI_800 */
+
+/* Общая тема */
+:root {
+  --bg:#100e18;
+  --panel:#211a2c;
+  --panel2:#30243a;
+  --gold:#f3c879;
+  --gold2:#aa7441;
+  --text:#fff1d8;
+  --muted:#c3afbb;
+  --green:#76dfaa;
+  --red:#ff7280;
+}
+
+html {
+  background:var(--bg);
+  scroll-behavior:smooth;
+}
+
+body {
+  margin:0;
+  min-height:100dvh;
+  color:var(--text);
+  background:
+    radial-gradient(
+      ellipse at 50% -10%,
+      #48304f 0%,
+      #191321 45%,
+      #100e18 85%
+    );
+  font-family:system-ui,Arial,sans-serif;
+}
+
+.shell {
+  width:min(100%,560px);
+  margin:auto;
+  padding:
+    max(12px,env(safe-area-inset-top))
+    12px
+    max(22px,env(safe-area-inset-bottom));
+}
+
+/* Верхняя часть */
+header {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:12px;
+  margin-bottom:12px;
+  background:linear-gradient(
+    135deg,#312337,#201827
+  );
+  border:1px solid #77543e;
+  border-radius:16px;
+  box-shadow:0 6px 20px #0004;
+}
+
+header>div {
+  min-width:0;
+}
+
+header small {
+  display:block;
+  color:#e7b97c;
+  font-size:9px;
+  letter-spacing:1.2px;
+  line-height:1.5;
+}
+
+header h1 {
+  font-size:clamp(17px,4.5vw,24px);
+  line-height:1.15;
+  color:var(--gold);
+  margin:5px 0 0;
+  text-shadow:0 2px #54301e;
+  overflow-wrap:anywhere;
+}
+
+#sound {
+  flex-shrink:0;
+  width:45px;
+  height:45px;
+  padding:0;
+}
+
+/* Кнопки */
+button {
+  border-radius:12px;
+  border:1px solid #a47b4f;
+  background:linear-gradient(
+    180deg,#5a3c42,#342533
+  );
+  color:var(--text);
+  font-weight:800;
+  box-shadow:0 3px #130e16;
+  transition:
+    filter .15s,
+    transform .12s;
+}
+
+button:active {
+  transform:scale(.97);
+  filter:brightness(1.15);
+}
+
+button:focus-visible {
+  outline:2px solid var(--gold);
+  outline-offset:2px;
+}
+
+/* Навигация */
+.kingdom-nav {
+  display:grid;
+  grid-template-columns:1fr 1fr auto;
+  gap:8px;
+  margin:0 0 10px;
+}
+
+.kingdom-nav button {
+  min-height:50px;
+  padding:9px 5px;
+  font-size:12px;
+  background:linear-gradient(
+    180deg,#62402d,#3b2932
+  );
+  border-color:#bc8a52;
+}
+
+.kingdom-nav>div {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-width:70px;
+  border-radius:12px;
+  padding:8px;
+  font-size:16px;
+  background:#18382e;
+  border:1px solid #559775;
+  color:#b6ffdb;
+}
+
+/* Сезон: обычная кнопка в потоке страницы */
+#seasonOpenButton {
+  position:static!important;
+  inset:auto!important;
+  display:block!important;
+  width:100%!important;
+  min-height:46px;
+  margin:0 0 12px!important;
+  padding:10px!important;
+  z-index:auto!important;
+  background:linear-gradient(
+    90deg,#66431f,#3b2a39
+  )!important;
+  border:1px solid #d2a65a!important;
+  border-radius:12px!important;
+}
+
+/* Показатели */
+.stats {
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:6px;
+  margin-bottom:14px;
+}
+
+.stats>div {
+  min-width:0;
+  padding:11px 3px;
+  background:linear-gradient(
+    180deg,#302537,#201a2b
+  );
+  border:1px solid #76533f;
+  border-radius:12px;
+  font-size:11px;
+  text-align:center;
+  line-height:1.3;
+}
+
+.stats b {
+  font-size:21px;
+  margin-top:5px;
+  color:var(--gold);
+}
+
+/* Игровое поле */
+.stage {
+  width:100%;
+  position:relative;
+  border:3px solid #c09052;
+  border-radius:16px;
+  overflow:hidden;
+  background:#172019;
+  box-shadow:
+    0 5px 0 #49301e,
+    0 12px 30px #0007;
+}
+
+#game {
+  display:block;
+  width:100%;
+  height:100%;
+  image-rendering:pixelated;
+}
+
+/* Главное меню */
+.kingdom-screen {
+  padding:12px;
+  background:#100d1aeF;
+  align-items:flex-start;
+  justify-content:center;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+}
+
+.kingdom-panel {
+  width:100%;
+  max-height:none;
+  overflow:visible;
+  padding:17px 12px;
+  border:2px solid #d4a15b;
+  border-radius:15px;
+  background:linear-gradient(
+    180deg,#31243a,#201828
+  );
+  box-shadow:0 7px 0 #110d15;
+}
+
+.kingdom-crest {
+  font-size:40px;
+  margin-bottom:5px;
+}
+
+.kingdom-panel h2 {
+  font-size:clamp(18px,5vw,24px);
+  line-height:1.2;
+  color:var(--gold);
+  margin:10px 0;
+}
+
+.kingdom-panel p {
+  color:#e2cbb4;
+  font-size:13px;
+  line-height:1.5;
+}
+
+#onlineMenu4 {
+  background:#20182e!important;
+  border:1px solid #b88a4c!important;
+  border-radius:13px!important;
+  padding:12px!important;
+  margin:14px 0!important;
+}
+
+#onlineMenu4 h3 {
+  font-size:19px;
+  margin:5px 0 10px;
+}
+
+#onlineMenu4 button {
+  display:block;
+  width:100%;
+  min-height:45px;
+  margin:8px 0;
+  padding:10px;
+  background:#68442f;
+}
+
+.mode-list {
+  display:grid;
+  gap:10px;
+  margin:15px 0;
+}
+
+.mode-list button {
+  min-height:75px;
+  padding:13px;
+  border-radius:12px;
+  background:linear-gradient(
+    135deg,#87552f,#583a35
+  );
+  border:1px solid #d7a166;
+  text-align:left;
+  font-size:14px;
+}
+
+.kingdom-panel>button {
+  min-height:48px;
+  border-radius:12px;
+}
+
+/* Магазин */
+.shop-item {
+  background:#2e2337;
+  border:1px solid #705444;
+  border-radius:12px;
+  padding:12px;
+  gap:10px;
+}
+
+.shop-item button {
+  min-height:40px;
+  padding:8px;
+  border-radius:9px;
+  background:#79502f;
+}
+
+/* Башни */
+.toolbar {
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;
+  margin-top:17px;
+}
+
+.tower {
+  min-width:0;
+  min-height:99px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  gap:5px;
+  padding:10px 3px;
+  border-radius:13px;
+  background:#2b2335;
+  border:1px solid #725543;
+}
+
+.tower span {
+  font-size:28px;
+}
+
+.tower b {
+  font-size:14px;
+}
+
+.tower small {
+  font-size:12px;
+  color:#f5c77d;
+}
+
+.tower.selected {
+  background:linear-gradient(
+    180deg,#76502e,#4c342e
+  );
+  border:2px solid #ffcf7d;
+  box-shadow:0 0 16px #e7a75a44;
+}
+
+/* Кнопки игры */
+.actions {
+  display:grid;
+  grid-template-columns:1.6fr 1fr .7fr;
+  gap:7px;
+  margin-top:15px;
+}
+
+.actions button {
+  min-width:0;
+  min-height:50px;
+  padding:9px 3px;
+  font-size:11px;
+  border-radius:11px;
+}
+
+.actions #waveBtn {
+  background:linear-gradient(
+    180deg,#efb661,#bd7936
+  );
+  color:#24151a;
+  border-color:#ffe0a0;
+}
+
+#hint {
+  font-size:12px;
+  color:#d9bfa9;
+  line-height:1.5;
+  padding:8px;
+}
+
+footer {
+  font-size:10px;
+  color:#a8969b;
+  padding:10px 0;
+}
+
+/* Окна */
+.modal {
+  border:2px solid #d9a660;
+  border-radius:15px;
+  background:#241b30;
+  box-shadow:0 12px 40px #0009;
+}
+
+.modal button {
+  border-radius:12px;
+}
+
+/* Сезонный пропуск */
+#absoluteSeasonPass {
+  padding:
+    max(15px,env(safe-area-inset-top))
+    15px
+    max(20px,env(safe-area-inset-bottom))!important;
+  background:#110e1bf7!important;
+}
+
+#absoluteSeasonPass .reward {
+  border-radius:12px;
+  background:#2a2136;
+}
+
+/* Админ-панель */
+#acOverlay {
+  position:fixed!important;
+  inset:0!important;
+  padding:
+    max(8px,env(safe-area-inset-top))
+    8px
+    max(8px,env(safe-area-inset-bottom))!important;
+  background:#090611ef!important;
+  align-items:center!important;
+  justify-content:center!important;
+  overflow:hidden!important;
+}
+
+#acBox {
+  width:min(100%,520px)!important;
+  height:min(94dvh,900px)!important;
+  max-height:94dvh!important;
+  padding:12px!important;
+  display:flex!important;
+  flex-direction:column!important;
+  gap:8px!important;
+  overflow:hidden!important;
+  border:2px solid #d8aa60!important;
+  border-radius:16px!important;
+  background:#1c1529!important;
+}
+
+#acBox h2 {
+  font-size:20px!important;
+  margin:4px 0!important;
+}
+
+#acPanel {
+  flex:1 1 auto!important;
+  min-height:0!important;
+  overflow-y:auto!important;
+  overscroll-behavior:contain;
+  padding:4px!important;
+  text-align:left!important;
+}
+
+#acLogin {
+  overflow-y:auto;
+  min-height:0;
+}
+
+#acClose {
+  flex-shrink:0!important;
+  width:100%!important;
+  min-height:44px;
+  margin:0!important;
+  background:#77403d!important;
+  color:white!important;
+}
+
+#acGrid {
+  display:grid!important;
+  grid-template-columns:
+    repeat(2,minmax(0,1fr))!important;
+  gap:8px!important;
+}
+
+#acGrid .acItem {
+  min-width:0;
+  min-height:66px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:9px 6px!important;
+  font-size:12px!important;
+  line-height:1.35;
+  border:1px solid #80608b!important;
+  border-radius:11px!important;
+  background:#342743!important;
+  overflow-wrap:anywhere;
+}
+
+#acGrid .acItem[hidden] {
+  display:none!important;
+}
+
+#acSearch710 {
+  width:100%;
+  padding:12px;
+  margin:10px 0;
+  border:1px solid #d1a260;
+  border-radius:10px;
+  background:#130e1c;
+  color:white;
+  font-size:16px;
+}
+
+#acTabs710 {
+  display:flex;
+  gap:6px;
+  overflow-x:auto;
+  padding:4px 0 10px;
+}
+
+#acTabs710 button {
+  flex-shrink:0;
+  min-height:40px;
+  padding:8px 10px;
+}
+
+#acFirebaseLogin,
+#absStage570,
+#absShop610 {
+  border-radius:12px!important;
+  background:#291e37!important;
+  border:1px solid #9e794f!important;
+  padding:12px!important;
+}
+
+#acFirebaseBanner {
+  left:10px!important;
+  right:10px!important;
+  bottom:10px!important;
+  font-size:12px!important;
+  padding:9px!important;
+  pointer-events:none;
+}
+
+/* Очень узкие экраны */
+@media(max-width:360px) {
+  .shell {padding-left:8px;padding-right:8px}
+  header h1 {font-size:17px}
+  .stats>div {font-size:10px}
+  .stats b {font-size:18px}
+  .kingdom-panel {padding:10px 7px}
+  .actions button {font-size:10px}
+  #acGrid .acItem {font-size:11px!important}
+}
+
+/* Доступность */
+@media(prefers-reduced-motion:reduce) {
+  * {
+    scroll-behavior:auto!important;
+    transition:none!important;
+    animation:none!important;
+  }
+}

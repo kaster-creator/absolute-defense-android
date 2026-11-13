@@ -1,4 +1,4 @@
-<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><meta name="theme-color" content="#171321"><title>ABSOLUTE DEFENSE</title><link rel="stylesheet" href="style.css"></head><body><main class="shell"><header><div><small>ABSOLUTE PROJECT · PIXEL GAMES</small><h1>🏰 ABSOLUTE DEFENSE</h1></div><button id="sound" aria-label="Звук">🔊</button></header><nav class="kingdom-nav"><button id="menuBtn">🏰 МЕНЮ</button><button id="shopBtn">💎 МАГАЗИН</button><div>💎 <b id="gems">0</b></div></nav><section class="stats"><div>❤️ Замок <b id="hp">20</b></div><div>🪙 Монеты <b id="gold">130</b></div><div>🌊 Волна <b id="wave">0</b></div><div>⭐ Счёт <b id="score">0</b></div></section><div class="stage"><canvas id="game" width="360" height="560" aria-label="Игровое поле"></canvas><div class="kingdom-screen" id="kingdomMenu"><div class="kingdom-panel"><div class="kingdom-crest">🏰</div><h2>ABSOLUTE DEFENSE 7.1</h2><p>Выбери сложность и защити своё королевство!</p>
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><meta name="theme-color" content="#171321"><title>ABSOLUTE DEFENSE</title><link rel="stylesheet" href="style.css"></head><body><main class="shell"><header><div><small>ABSOLUTE PROJECT · PIXEL GAMES</small><h1>🏰 ABSOLUTE DEFENSE</h1></div><button id="sound" aria-label="Звук">🔊</button></header><nav class="kingdom-nav"><button id="menuBtn">🏰 МЕНЮ</button><button id="shopBtn">💎 МАГАЗИН</button><div>💎 <b id="gems">0</b></div></nav><section class="stats"><div>❤️ Замок <b id="hp">20</b></div><div>🪙 Монеты <b id="gold">130</b></div><div>🌊 Волна <b id="wave">0</b></div><div>⭐ Счёт <b id="score">0</b></div></section><div class="stage"><canvas id="game" width="360" height="560" aria-label="Игровое поле"></canvas><div class="kingdom-screen" id="kingdomMenu"><div class="kingdom-panel"><div class="kingdom-crest">🏰</div><h2>ABSOLUTE DEFENSE 8.0</h2><p>Выбери сложность и защити своё королевство!</p>
 <div id="onlineMenu4" style="background:#21182d;border:2px solid #e9ad48;border-radius:12px;padding:12px;margin:12px 0">
   <h3>🌐 ИГРАТЬ ОНЛАЙН</h3>
   <p>Совместная защита замка: 2–4 игрока</p>
@@ -1478,6 +1478,95 @@ if(document.readyState==="loading"){
   );
 }else{
   setup();
+}
+})();
+</script>
+
+
+<!-- ABS_FULL_UI_800 -->
+<script>
+(function(){
+"use strict";
+
+function init(){
+  const nav=document.querySelector(".kingdom-nav");
+  const season=document.getElementById(
+    "seasonOpenButton"
+  );
+
+  // Сезон — под основной навигацией.
+  if(nav && season){
+    nav.insertAdjacentElement(
+      "afterend",season
+    );
+  }
+
+  // Новая подпись версии.
+  const footer=document.querySelector(
+    ".shell footer"
+  );
+
+  if(footer){
+    footer.textContent=
+      "ABSOLUTE PROJECT · UI 8.0 · " +
+      "Прогресс сохраняется на устройстве";
+  }
+
+  // Вход в админку не меняем:
+  // 5 нажатий на название.
+  const admin=document.getElementById(
+    "acOverlay"
+  );
+
+  if(admin){
+    admin.setAttribute(
+      "aria-label",
+      "ABSOLUTE CONTROL"
+    );
+  }
+
+  // Закрытие открытых окон клавишей Escape.
+  document.addEventListener(
+    "keydown",function(e){
+      if(e.key!=="Escape")return;
+
+      const ac=document.getElementById(
+        "acOverlay"
+      );
+
+      if(ac && getComputedStyle(ac).display
+         !=="none"){
+        const close=document.getElementById(
+          "acClose"
+        );
+        if(close)close.click();
+        return;
+      }
+
+      const seasonPanel=document.getElementById(
+        "absoluteSeasonPass"
+      );
+
+      if(seasonPanel && !seasonPanel.hidden){
+        const close=document.getElementById(
+          "seasonClose"
+        );
+        if(close)close.click();
+      }
+    }
+  );
+
+  console.log(
+    "ABSOLUTE DEFENSE FULL UI 8.0 READY"
+  );
+}
+
+if(document.readyState==="loading"){
+  document.addEventListener(
+    "DOMContentLoaded",init,{once:true}
+  );
+}else{
+  init();
 }
 })();
 </script>
