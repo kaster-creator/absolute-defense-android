@@ -54,41 +54,74 @@ window.addEventListener(
  }
 );
 
+
+// ABS_REWARDS_70
+const rewardEvents={
+ 20:{seconds:10,coins:50,label:"🪙 Дождь монет"},
+ 21:{seconds:10,gems:2,label:"💎 Алмазный дождь"},
+ 22:{seconds:15,coins:100,gems:1,label:"📦 Сундук с неба"},
+ 26:{seconds:10,coins:20,label:"🌟 Золотой час"},
+ 27:{seconds:20,random:true,label:"🎡 Колесо удачи"},
+ 28:{seconds:15,random:true,label:"🔮 Мистический ящик"},
+ 29:{seconds:30,coins:500,gems:5,label:"🎰 Джекпот"},
+ 47:{seconds:10,random:true,label:"🍀 Монета удачи"}
+};
+
 function adminTick(dt){
+ if(!playing)return;
+
  if(Date.now()>=adminEvent.until){
   adminEvent.id=-1;
   return;
  }
 
- adminEvent.elapsed+=dt;
+ const config=rewardEvents[adminEvent.id];
+ if(!config)return;
 
- if(adminEvent.elapsed<10)return;
- adminEvent.elapsed-=10;
+ adminEvent.elapsed+=Math.min(dt,.06);
 
- if(adminEvent.id===21){
-  gems+=2;
-  updateGems();
-  notice("💎 Алмазный дождь: +2 изумруда!");
-  for(let i=0;i<15;i++){
-   pop(
-    Math.random()*W,
-    Math.random()*H,
-    "#7cecff",
-    2
-   );
+ if(adminEvent.elapsed<config.seconds)return;
+
+ adminEvent.elapsed-=config.seconds;
+
+ let coins=config.coins||0;
+ let diamonds=config.gems||0;
+
+ if(config.random){
+  const roll=Math.random();
+
+  if(adminEvent.id===27){
+   coins=roll<.5?50:200;
+  }
+
+  if(adminEvent.id===28){
+   diamonds=roll<.7?1:3;
+  }
+
+  if(adminEvent.id===47){
+   coins=roll<.5?10:100;
   }
  }
 
- if(adminEvent.id===20){
-  gold+=50;
-  sync();
-  notice("🪙 Дождь монет: +50!");
- }
+ gold+=coins;
+ gems+=diamonds;
 
- if(adminEvent.id===26){
-  gold+=20;
-  sync();
-  notice("🌟 Золотой час: +20 монет!");
+ if(diamonds)updateGems();
+ sync();
+
+ notice(
+  config.label+
+  (coins?" +"+coins+" 🪙":"")+
+  (diamonds?" +"+diamonds+" 💎":"")
+ );
+
+ for(let i=0;i<18;i++){
+  pop(
+   Math.random()*W,
+   Math.random()*H,
+   diamonds?"#79eaff":"#ffd66b",
+   2
+  );
  }
 }
 
