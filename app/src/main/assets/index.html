@@ -1571,4 +1571,228 @@ if(document.readyState==="loading"){
 })();
 </script>
 
+
+<!-- ABS_STREAK_810 -->
+<style>
+#absStreak810{
+  margin:0 0 12px;
+  padding:13px;
+  background:linear-gradient(135deg,#392334,#211a2e);
+  border:1px solid #e0a35e;
+  border-radius:14px;
+  color:#ffe8bd;
+  box-shadow:0 4px 14px #0004;
+}
+#absStreak810 .streakTop{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:8px;
+}
+#absStreak810 strong{
+  font-size:16px;
+}
+#absStreak810 .streakDays{
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  gap:5px;
+  margin:12px 0;
+}
+#absStreak810 .streakDay{
+  padding:8px 2px;
+  text-align:center;
+  border-radius:8px;
+  background:#251b2d;
+  border:1px solid #69516a;
+  font-size:13px;
+}
+#absStreak810 .streakDay.done{
+  background:#70402d;
+  border-color:#f5b267;
+}
+#absStreak810 .streakDay.today{
+  box-shadow:0 0 9px #ffa64b99;
+}
+#absStreak810 small{
+  color:#d7bda6;
+  font-size:11px;
+  line-height:1.5;
+}
+</style>
+
+<section id="absStreak810">
+  <div class="streakTop">
+    <strong id="absStreakCount810">
+      🔥 Серия: 1 день
+    </strong>
+    <span>🎁 7 дней</span>
+  </div>
+  <div class="streakDays" id="absStreakDays810"></div>
+  <small id="absStreakInfo810"></small>
+</section>
+
+<script>
+(function(){
+"use strict";
+
+const KEY="absDailyStreak810";
+const REWARD=5;
+const DAY=86400000;
+
+function dateNumber(date){
+  return Math.floor(
+    Date.UTC(
+      date.getFullYear(),
+      date.getMonth(),
+      date.getDate()
+    )/DAY
+  );
+}
+
+function load(){
+  try{
+    return JSON.parse(
+      localStorage.getItem(KEY)||"{}"
+    );
+  }catch(e){
+    return {};
+  }
+}
+
+function save(s){
+  localStorage.setItem(KEY,JSON.stringify(s));
+}
+
+function update(){
+  const today=dateNumber(new Date());
+  const s=load();
+
+  let streak=Math.max(0,Number(s.streak)||0);
+  let last=Number(s.lastDay);
+  let rewarded=Number(s.rewarded)||0;
+
+  if(!Number.isFinite(last)){
+    last=-1;
+  }
+
+  if(last===today){
+    // Уже заходил сегодня — не прибавляем.
+  }else if(last===today-1){
+    streak++;
+    last=today;
+  }else if(last<today){
+    streak=1;
+    last=today;
+  }else{
+    // Дата устройства переведена назад.
+    // Серию не увеличиваем.
+  }
+
+  // Награда за каждые 7 дней подряд.
+  // Выдаём только один раз за достигнутый рубеж.
+  let bonus=0;
+
+  if(last===today && streak>=7 &&
+     streak%7===0 && rewarded!==today){
+    try{
+      const gemKey="absGems3";
+      const gems=Math.max(
+        0,Number(localStorage.getItem(gemKey))||0
+      );
+      localStorage.setItem(
+        gemKey,String(gems+REWARD)
+      );
+      bonus=REWARD;
+      rewarded=today;
+    }catch(e){
+      console.warn("Streak reward:",e);
+    }
+  }
+
+  const state={streak,lastDay:last,rewarded};
+  save(state);
+
+  const count=document.getElementById(
+    "absStreakCount810"
+  );
+  const days=document.getElementById(
+    "absStreakDays810"
+  );
+  const info=document.getElementById(
+    "absStreakInfo810"
+  );
+
+  if(!count||!days||!info)return;
+
+  count.textContent=
+    "🔥 Серия: "+streak+
+    (streak===1?" день":" дней");
+
+  days.replaceChildren();
+
+  const progress=((streak-1)%7)+1;
+
+  for(let i=1;i<=7;i++){
+    const el=document.createElement("div");
+    el.className="streakDay";
+
+    if(i<=progress){
+      el.classList.add("done");
+    }
+
+    if(i===progress){
+      el.classList.add("today");
+    }
+
+    el.textContent=i<=progress?"🔥":"○";
+    days.appendChild(el);
+  }
+
+  info.textContent=bonus
+    ?"🎉 Награда! +"+bonus+" изумрудов."
+    :"Заходи каждый день. Пропустишь день — серия сбросится.";
+
+  const gems=document.getElementById("gems");
+  if(gems && bonus){
+    gems.textContent=
+      Math.max(0,Number(gems.textContent)||0)+bonus;
+  }
+}
+
+function init(){
+  const box=document.getElementById("absStreak810");
+  const nav=document.querySelector(".kingdom-nav");
+  const season=document.getElementById(
+    "seasonOpenButton"
+  );
+
+  if(box){
+    if(season){
+      season.insertAdjacentElement("afterend",box);
+    }else if(nav){
+      nav.insertAdjacentElement("afterend",box);
+    }
+  }
+
+  update();
+
+  document.addEventListener(
+    "visibilitychange",()=>{
+      if(!document.hidden)update();
+    }
+  );
+
+  window.addEventListener("focus",update);
+}
+
+if(document.readyState==="loading"){
+  document.addEventListener(
+    "DOMContentLoaded",init,{once:true}
+  );
+}else{
+  init();
+}
+})();
+</script>
+
 </body></html>
