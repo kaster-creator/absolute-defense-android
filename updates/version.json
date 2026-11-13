@@ -1,19 +1,15 @@
 {
-  "version": "7.0.0",
-  "title": "ABSOLUTE DEFENSE 7.0",
+  "version": "7.1.0",
+  "title": "ABSOLUTE DEFENSE 7.1",
   "changes": [
-    "ABSOLUTE CONTROL 7.0",
-    "Глобальные события через Firebase",
-    "Алмазный дождь и награды",
-    "Нашествия врагов и боссы",
-    "Катастрофы и события мира",
-    "Админские способности",
-    "Магазин и промокоды",
-    "Выбор длительности событий",
-    "Голосования и история событий"
+    "Исправлены устаревшие надписи версии",
+    "Убрана зелёная тестовая плашка",
+    "Кнопка сезона больше не перекрывает игру",
+    "Админ-панель получила поиск событий",
+    "Добавлены категории и удобная прокрутка"
   ],
   "package": {
-    "url": "https://raw.githubusercontent.com/kaster-creator/absolute-defense-android/auto-updates-5/updates/game-7.0.0.zip",
-    "sha256": "3812815748cac2d46c361356b5c5b169bb740203cf56b53997a3e7d2a5a9bf59"
+    "url": "https://raw.githubusercontent.com/kaster-creator/absolute-defense-android/auto-updates-5/updates/game-7.1.0.zip",
+    "sha256": "0c16a02012aefe773953f93e2c1df9225c0d7417ac0d290ff8ea0da80af61c3e"
   }
 }
