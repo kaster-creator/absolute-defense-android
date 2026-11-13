@@ -28,7 +28,103 @@ function waveStart(){if(!playing||active)return;if(wave>=modes[modeIndex].waves)
 function spawnOne(){let pool=typesForWave(wave),r=Math.random(),kind=pool[Math.floor(r*pool.length)];if(wave>=5&&r<.16)kind='knight';makeEnemy(kind)}
 function pop(x,y,color,count=6){for(let i=0;i<count;i++)particles.push({x,y,vx:(Math.random()-.5)*110,vy:(Math.random()-.5)*110,life:.4,color})}
 function finish(){playing=false;active=false;if(score>best){best=score;try{localStorage.setItem('absoluteDefenseBest',String(best))}catch(e){}}$('best').textContent=best;$('overlayTitle').textContent='ЗАМОК ПАЛ!';$('overlayText').textContent='Ты дошёл до волны '+wave+'. Очки: '+score+'. Построй новую защиту!';$('overlayBtn').textContent='ИГРАТЬ СНОВА';$('overlay').classList.remove('hidden');tone(130,.3)}
-function update(dt){if(!playing)return;dt=Math.min(dt,.06)*speed;clock+=dt;
+
+// ABS_GAME_610
+const adminEvent={
+ id:-1,
+ until:0,
+ elapsed:0
+};
+
+window.addEventListener(
+ "absolute:global-event",
+ function(event){
+  const d=event.detail||{};
+  const id=Number(d.id);
+  const start=Number(d.startedAt);
+  const duration=Number(d.duration);
+
+  if(!Number.isInteger(id) ||
+     !Number.isFinite(start) ||
+     !Number.isFinite(duration))return;
+
+  adminEvent.id=id;
+  adminEvent.until=start+duration*1000;
+  adminEvent.elapsed=0;
+ }
+);
+
+function adminTick(dt){
+ if(Date.now()>=adminEvent.until){
+  adminEvent.id=-1;
+  return;
+ }
+
+ adminEvent.elapsed+=dt;
+
+ if(adminEvent.elapsed<10)return;
+ adminEvent.elapsed-=10;
+
+ if(adminEvent.id===21){
+  gems+=2;
+  updateGems();
+  notice("💎 Алмазный дождь: +2 изумруда!");
+  for(let i=0;i<15;i++){
+   pop(
+    Math.random()*W,
+    Math.random()*H,
+    "#7cecff",
+    2
+   );
+  }
+ }
+
+ if(adminEvent.id===20){
+  gold+=50;
+  sync();
+  notice("🪙 Дождь монет: +50!");
+ }
+
+ if(adminEvent.id===26){
+  gold+=20;
+  sync();
+  notice("🌟 Золотой час: +20 монет!");
+ }
+}
+
+window.absoluteAdminPurchase=function(item){
+ if(!playing)return "Сначала начни игру";
+
+ if(item==="coins"){
+  if(gems<10)return "Недостаточно изумрудов";
+  gems-=10;
+  gold+=300;
+  updateGems();
+  sync();
+  return "Получено 300 монет";
+ }
+
+ if(item==="gems"){
+  if(gold<500)return "Недостаточно монет";
+  gold-=500;
+  gems+=5;
+  updateGems();
+  sync();
+  return "Получено 5 изумрудов";
+ }
+
+ if(item==="heal"){
+  if(gold<150)return "Недостаточно монет";
+  gold-=150;
+  hp=Math.min(20,hp+10);
+  sync();
+  return "Замок восстановлен";
+ }
+
+ return "Товар не найден";
+};
+
+function update(dt){adminTick(dt);if(!playing)return;dt=Math.min(dt,.06)*speed;clock+=dt;
 if(spawn){spawn.timer-=dt;while(spawn.left>0&&spawn.timer<=0){spawnOne();spawn.left--;spawn.timer+=spawn.interval}if(spawn.left===0){if(spawn.bossPending){let b=bosses[Math.min(Math.floor(wave/5)-1,bosses.length-1)];makeEnemy(b.kind,true,{...b,hp:Math.round(b.hp*Math.pow(1.4,Math.max(0,Math.floor(wave/5)-5)))});notice('👑 '+b.name+' НА ПОЛЕ!');spawn.bossPending=false;tone(145,.3)}spawn=null}}
 for(let i=enemies.length-1;i>=0;i--){let e=enemies[i],next=route[e.idx+1];e.attackCd=(e.attackCd===undefined?1.4:e.attackCd-dt);if(e.idx>=28&&e.attackCd<=0&&wallHp>0){wallHp=Math.max(0,wallHp-(e.boss?22:5));e.attackCd=e.boss?1.8:2.5;pop(e.x,e.y,'#ffb75c',2)}if(!next){enemies.splice(i,1);if(wallHp>0){let hit=Math.min(wallHp,e.leak*15);wallHp-=hit;hp-=Math.max(0,e.leak-Math.ceil(hit/15))}else hp-=e.leak;pop(e.x,e.y,'#f65b57',12);if(hp<=0){hp=0;sync();finish();return}continue}let tx=next[0]*C+C/2,ty=next[1]*C+C/2,dx=tx-e.x,dy=ty-e.y,d=Math.hypot(dx,dy),step=e.speed*(e.slow>0?.52:1)*dt;if(e.slow>0)e.slow-=dt;if(d<=step){e.x=tx;e.y=ty;e.idx++}else if(d>0){e.x+=dx/d*step;e.y+=dy/d*step}}
 for(let t of towers){t.cool-=dt;if(t.cool>0)continue;let d=defs[t.type],range=d.range+(t.level-1)*10,targets=enemies.filter(e=>Math.hypot(e.x-t.x,e.y-t.y)<range).sort((a,b)=>b.idx-a.idx);if(targets.length){let e=targets[0];bullets.push({x:t.x,y:t.y,target:e,type:t.type,damage:d.damage*(1+(t.level-1)*.65),speed:t.type==='cannon'?230:330});t.cool=d.rate/(1+(t.level-1)*.13);tone(t.type==='frost'?730:t.type==='cannon'?170:510,.02)}}
