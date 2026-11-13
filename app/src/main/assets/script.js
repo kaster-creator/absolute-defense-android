@@ -292,7 +292,121 @@ window.addEventListener(
  }
 );
 
-function update(dt){enemyEventSpawn();adminTick(dt);if(!playing)return;dt=Math.min(dt,.06)*speed;clock+=dt;
+
+// ABS_WORLD_70
+const worldEventState={
+ lastKey:"",
+ nextEffect:0,
+ lastEnemyId:0
+};
+
+function worldEventActive(id){
+ return playing &&
+        adminEvent.id===id &&
+        Date.now()<adminEvent.until;
+}
+
+function worldEventDamage(amount,color){
+ for(const e of enemies){
+  e.hp=Math.max(1,e.hp-amount);
+  pop(e.x,e.y,color,5);
+ }
+}
+
+function worldEventTick(){
+ if(!playing)return;
+
+ const id=adminEvent.id;
+
+ if(id<0||id>9)return;
+ if(Date.now()>=adminEvent.until)return;
+
+ const now=Date.now();
+
+ if(now<worldEventState.nextEffect)return;
+
+ worldEventState.nextEffect=now+3000;
+
+ if(id===0){
+  for(const e of enemies){
+   e.hp=Math.round(e.hp*1.15);
+   e.max=Math.max(e.max,e.hp);
+  }
+  notice("🌕 Кровавая луна!");
+ }
+
+ if(id===1){
+  worldEventDamage(35,"#ff954c");
+  notice("☄️ Метеоритный дождь!");
+ }
+
+ if(id===2){
+  for(const e of enemies){
+   e.slow=Math.max(e.slow,3);
+  }
+  notice("❄️ Ледяной апокалипсис!");
+ }
+
+ if(id===3){
+  for(const e of enemies){
+   e.idx=Math.max(0,e.idx-1);
+  }
+  notice("🌪️ Торнадо!");
+ }
+
+ if(id===4){
+  gold+=30;
+  sync();
+  notice("🌈 Радужный мир: +30 монет!");
+ }
+
+ if(id===5){
+  for(const e of enemies){
+   e.speed=Math.min(e.speed*1.1,150);
+  }
+  notice("🌑 Затмение!");
+ }
+
+ if(id===6){
+  worldEventDamage(55,"#a9d8ff");
+  notice("⚡ Гроза богов!");
+ }
+
+ if(id===7){
+  worldEventDamage(25,"#ff593b");
+  notice("🌋 Извержение вулкана!");
+ }
+
+ if(id===8){
+  for(let i=0;i<3;i++){
+   makeEnemy("mage");
+  }
+  notice("👽 Космическое вторжение!");
+ }
+
+ if(id===9){
+  for(const e of enemies){
+   e.idx=Math.max(0,e.idx-2);
+  }
+  notice("🔄 Перевёрнутый мир!");
+ }
+}
+
+window.addEventListener(
+ "absolute:global-event",
+ event=>{
+  const d=event.detail||{};
+  const key=String(d.id)+":"+
+            String(d.startedAt);
+
+  if(key!==worldEventState.lastKey){
+   worldEventState.lastKey=key;
+   worldEventState.nextEffect=0;
+  }
+ }
+);
+
+function update(dt){worldEventTick();enemyEventSpawn();adminTick(dt);if(!playing)return;dt=Math.min(dt,.06)*speed;clock+=dt;
 if(spawn){spawn.timer-=dt;while(spawn.left>0&&spawn.timer<=0){spawnOne();spawn.left--;spawn.timer+=spawn.interval}if(spawn.left===0){if(spawn.bossPending){let b=bosses[Math.min(Math.floor(wave/5)-1,bosses.length-1)];makeEnemy(b.kind,true,{...b,hp:Math.round(b.hp*Math.pow(1.4,Math.max(0,Math.floor(wave/5)-5)))});notice('👑 '+b.name+' НА ПОЛЕ!');spawn.bossPending=false;tone(145,.3)}spawn=null}}
 for(let i=enemies.length-1;i>=0;i--){let e=enemies[i],next=route[e.idx+1];e.attackCd=(e.attackCd===undefined?1.4:e.attackCd-dt);if(e.idx>=28&&e.attackCd<=0&&wallHp>0){wallHp=Math.max(0,wallHp-(e.boss?22:5));e.attackCd=e.boss?1.8:2.5;pop(e.x,e.y,'#ffb75c',2)}if(!next){enemies.splice(i,1);if(wallHp>0){let hit=Math.min(wallHp,e.leak*15);wallHp-=hit;hp-=Math.max(0,e.leak-Math.ceil(hit/15))}else hp-=e.leak;pop(e.x,e.y,'#f65b57',12);if(hp<=0){hp=0;sync();finish();return}continue}let tx=next[0]*C+C/2,ty=next[1]*C+C/2,dx=tx-e.x,dy=ty-e.y,d=Math.hypot(dx,dy),step=e.speed*(e.slow>0?.52:1)*dt;if(e.slow>0)e.slow-=dt;if(d<=step){e.x=tx;e.y=ty;e.idx++}else if(d>0){e.x+=dx/d*step;e.y+=dy/d*step}}
 for(let t of towers){t.cool-=dt;if(t.cool>0)continue;let d=defs[t.type],range=d.range+(t.level-1)*10,targets=enemies.filter(e=>Math.hypot(e.x-t.x,e.y-t.y)<range).sort((a,b)=>b.idx-a.idx);if(targets.length){let e=targets[0];bullets.push({x:t.x,y:t.y,target:e,type:t.type,damage:d.damage*(1+(t.level-1)*.65),speed:t.type==='cannon'?230:330});t.cool=d.rate/(1+(t.level-1)*.13);tone(t.type==='frost'?730:t.type==='cannon'?170:510,.02)}}
